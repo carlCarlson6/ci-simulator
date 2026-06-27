@@ -11,7 +11,8 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
 > **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).  
-> **Environment Variables:** ✅ Complete — see [P010-environment-variables.md](plans/P010-environment-variables.md).
+> **Environment Variables:** ✅ Complete — see [P010-environment-variables.md](plans/P010-environment-variables.md).  
+> **Virtual Web Page Hosting:** 📝 Planned — see [P011-wwwroot-pages.md](plans/P011-wwwroot-pages.md).
 
 ---
 
@@ -76,7 +77,8 @@ src/
 │   └── terminalStore.ts    # Zustand store for terminal state
 ├── routes/
 │   ├── __root.tsx          # Root layout (document shell, fonts, CSS)
-│   └── index.tsx           # Home route — renders <Terminal />
+│   ├── index.tsx           # Home route — renders <Terminal />
+│   └── $pageName.tsx       # Dynamic route — renders wwwroot pages
 ├── styles/
 │   └── terminal.css        # Cyberpunk color scheme
 ├── router.tsx              # Router factory (file-based route tree)
@@ -91,6 +93,7 @@ plans/
 ├── P007-clerk-authentication.md        # Clerk authentication integration
 ├── P009-markdown-renderer.md           # Markdown renderer modal
 ├── P010-environment-variables.md       # Environment variables (env/export)
+├── P011-wwwroot-pages.md               # Virtual web page hosting
 vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 ```
 
@@ -154,6 +157,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 | 17. Markdown Renderer | ✅ Complete | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
 | 18. Environment Variables | ✅ Complete | [P010](plans/P010-environment-variables.md) — `env`/`export`/`echo $VAR` |
+| 19. Virtual Web Page Hosting | 📝 Planned | [P011](plans/P011-wwwroot-pages.md) — serve HTML/CSS pages from `~/wwwroot/` at `/:pageName` |
 
 ---
 
