@@ -71,6 +71,17 @@ export class FileSystem {
     return entry.content || ''
   }
 
+  writeFile(path: string, content: string): void {
+    const normalized = this.resolvePath(path)
+    const entry = this.getEntry(normalized)
+
+    if (entry?.type === 'directory') {
+      throw new Error(`edit: ${path}: Is a directory`)
+    }
+
+    this.entries.set(normalized, { type: 'file', content })
+  }
+
   removeEntry(path: string, recursive: boolean = false): void {
     const normalized = this.resolvePath(path)
     const entry = this.getEntry(normalized)
