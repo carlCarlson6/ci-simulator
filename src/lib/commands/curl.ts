@@ -1,4 +1,5 @@
-import { CommandHandler } from './types'
+import { CommandHandler, CommandEffect } from './types'
+import { proxyHttpRequest } from '../proxy.functions'
 
 export const MANUAL = 'curl\n\nTransfer data from or to a server.\n\nUsage: curl [options] <url>\n  -I    Fetch headers only (HEAD request)'
 export const HELP_TEXT = '  curl [-I] <url>       Make HTTP request'
@@ -24,4 +25,54 @@ export const handler: CommandHandler = (args) => {
       curlMethod: headOnly ? 'HEAD' : 'GET',
     },
   }
+}
+
+export const effect: CommandEffect = (result, context) => {
+  if (!result.success || !result.data?.curlUrl) {
+    return 'continue'
+  }
+
+  proxyHttpRequest({
+    data: {
+      url: result.data.curlUrl,
+      method: (result.data.curlMethod || 'GET') as 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    },
+  })
+    .then((data) => {
+      if (data.error) {
+        context.addLine('error', `curl: ${data.error}`)
+        return
+      }
+
+      const lines: string[] = []
+      lines.push(`HTTP/${data.status} ${data.statusText || 'OK'}`)
+
+      if (data.headers) {
+        for (const [key, value] of Object.entries(data.headers)) {
+          if (value) lines.push(`${key}: ${value}`)
+        }
+      }
+
+      lines.push('')
+
+      if (data.body) {
+        const bodyLines = String(data.body).split('\n')
+        const maxLines = 100
+        for (let i = 0; i < Math.min(bodyLines.length, maxLines); i++) {
+          lines.push(bodyLines[i])
+        }
+        if (bodyLines.length > maxLines) {
+          lines.push(`... (${bodyLines.length - maxLines} more lines)`)
+        }
+      }
+
+      for (const line of lines) {
+        context.addLine('output', line)
+      }
+    })
+    .catch((err) => {
+      context.addLine('error', `curl: ${err.message}`)
+    })
+
+  return 'handled'
 }

@@ -1,9 +1,9 @@
-import { CommandContext, CommandResult, CommandHandler } from './types'
+import { CommandContext, CommandResult, CommandHandler, CommandEffect } from './types'
 
 import { handler as helpHandler } from './help'
-import { handler as clearHandler } from './clear'
+import { handler as clearHandler, effect as clearEffect } from './clear'
 import { handler as lsHandler } from './ls'
-import { handler as cdHandler } from './cd'
+import { handler as cdHandler, effect as cdEffect } from './cd'
 import { handler as pwdHandler } from './pwd'
 import { handler as catHandler } from './cat'
 import { handler as echoHandler } from './echo'
@@ -12,7 +12,7 @@ import { handler as touchHandler } from './touch'
 import { handler as rmHandler } from './rm'
 import { handler as cpHandler } from './cp'
 import { handler as mvHandler } from './mv'
-import { handler as curlHandler } from './curl'
+import { handler as curlHandler, effect as curlEffect } from './curl'
 import { handler as manHandler } from './man'
 import { handler as cowsayHandler } from './cowsay'
 import { handler as historyHandler } from './history'
@@ -38,7 +38,13 @@ const commands: Record<string, CommandHandler> = {
   theme: themeHandler,
 }
 
-export type { CommandContext, CommandResult, CommandHandler } from './types'
+const commandEffects: Record<string, CommandEffect> = {
+  clear: clearEffect,
+  cd: cdEffect,
+  curl: curlEffect,
+}
+
+export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'
 
 export function executeCommand(input: string, context: CommandContext): CommandResult {
   const parts = input.trim().split(/\s+/)
@@ -89,6 +95,10 @@ export function getCompletionCandidates(
   } catch {
     return []
   }
+}
+
+export function getCommandEffect(command: string): CommandEffect | undefined {
+  return commandEffects[command]
 }
 
 export function getCommands(): string[] {

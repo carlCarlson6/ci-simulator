@@ -1,10 +1,9 @@
 // src/lib/terminalStore.ts
 import { create } from 'zustand'
 import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
-import { executeCommand, getCompletionCandidates } from './commands/index'
+import { executeCommand, getCompletionCandidates, getCommandEffect } from './commands/index'
 import { saveFileSystem, loadFileSystem, clearFileSystemStorage } from './persistence'
 import { getTheme } from './themes'
-import { proxyHttpRequest } from './proxy.functions'
 
 export type TerminalLine = {
   id: string
@@ -98,68 +97,27 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     // Record command in history AFTER execution
     set({ history: [...state.history, trimmed] })
 
-    // Handle special commands
     const command = trimmed.split(/\s+/)[0]
+    const effect = getCommandEffect(command)
 
-    if (command === 'clear') {
-      get().clearScreen()
-      saveFileSystem(state.fileSystem)
-      return
-    }
-
-    if (command === 'cd' && result.success) {
-      const newPath = result.data?.newPath || state.currentPath
-      set({ currentPath: newPath, previousPath: state.currentPath })
-    }
-
-    // Handle curl asynchronously
-    if (command === 'curl' && result.success && result.data?.curlUrl) {
-      proxyHttpRequest({
-        data: {
-          url: result.data.curlUrl,
-          method: (result.data.curlMethod || 'GET') as 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-        },
+    if (effect) {
+      const outcome = effect(result, {
+        fileSystem: state.fileSystem,
+        currentPath: state.currentPath,
+        previousPath: state.previousPath,
+        addLine: (type, content) => get().addLine({ type, content }),
+        setPaths: (current, previous) => set({ currentPath: current, previousPath: previous }),
+        clearScreen: () => get().clearScreen(),
+        saveFileSystem: (fs) => saveFileSystem(fs),
       })
-        .then((data) => {
-          if (data.error) {
-            get().addLine({ type: 'error', content: `curl: ${data.error}` })
-            return
-          }
 
-          const lines: string[] = []
-          lines.push(`HTTP/${data.status} ${data.statusText || 'OK'}`)
-
-          if (data.headers) {
-            for (const [key, value] of Object.entries(data.headers)) {
-              if (value) lines.push(`${key}: ${value}`)
-            }
-          }
-
-          lines.push('')
-
-          if (data.body) {
-            const bodyLines = String(data.body).split('\n')
-            const maxLines = 100
-            for (let i = 0; i < Math.min(bodyLines.length, maxLines); i++) {
-              lines.push(bodyLines[i])
-            }
-            if (bodyLines.length > maxLines) {
-              lines.push(`... (${bodyLines.length - maxLines} more lines)`)
-            }
-          }
-
-          for (const line of lines) {
-            get().addLine({ type: 'output', content: line })
-          }
-        })
-        .catch((err) => {
-          get().addLine({ type: 'error', content: `curl: ${err.message}` })
-        })
-      saveFileSystem(state.fileSystem)
-      return
+      if (outcome === 'handled') {
+        saveFileSystem(get().fileSystem)
+        return
+      }
     }
 
-    // Add output
+    // Default output handling
     if (result.success) {
       if (result.data?.output) {
         for (const line of result.data.output.split('\n')) {

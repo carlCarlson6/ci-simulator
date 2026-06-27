@@ -1,4 +1,4 @@
-import { CommandHandler } from './types'
+import { CommandHandler, CommandEffect } from './types'
 
 export const MANUAL = 'cd\n\nChange the current directory.\n\nUsage: cd <path>\n  cd ~       Go to home directory\n  cd -       Go to previous directory'
 export const HELP_TEXT = '  cd <path>            Change directory'
@@ -27,4 +27,11 @@ export const handler: CommandHandler = (args, context) => {
   } catch (error) {
     return { success: false, error: (error as Error).message }
   }
+}
+
+export const effect: CommandEffect = (result, context) => {
+  if (result.success && result.data?.newPath) {
+    context.setPaths(result.data.newPath, context.currentPath)
+  }
+  return 'continue'
 }

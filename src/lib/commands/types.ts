@@ -20,4 +20,19 @@ export type CommandResult = {
   }
 }
 
+export type CommandEffectContext = {
+  fileSystem: FileSystem
+  currentPath: string
+  previousPath: string
+  addLine: (type: 'prompt' | 'output' | 'error' | 'system', content: string) => void
+  setPaths: (current: string, previous: string) => void
+  clearScreen: () => void
+  saveFileSystem: (fs: FileSystem) => void
+}
+
+export type CommandEffect = (
+  result: CommandResult,
+  context: CommandEffectContext
+) => 'handled' | 'continue'
+
 export type CommandHandler = (args: string[], context: CommandContext) => CommandResult
