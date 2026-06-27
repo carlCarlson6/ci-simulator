@@ -56,10 +56,25 @@ const commandEffects: Record<string, CommandEffect> = {
 
 export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'
 
+export function expandVariables(input: string, envVars: Record<string, string>): string {
+  return input.replace(/\$([a-zA-Z_][a-zA-Z0-9_]*)/g, (match, key) => envVars[key] ?? '')
+}
+
 export function executeCommand(input: string, context: CommandContext): CommandResult {
-  const parts = input.trim().split(/\s+/)
-  const command = parts[0]
-  const args = parts.slice(1)
+  const trimmed = input.trim()
+  const firstSpace = trimmed.indexOf(' ')
+  let command: string
+  let args: string[]
+
+  if (firstSpace === -1) {
+    command = trimmed
+    args = []
+  } else {
+    command = trimmed.slice(0, firstSpace)
+    const argsStr = trimmed.slice(firstSpace + 1)
+    const expanded = expandVariables(argsStr, context.envVars)
+    args = expanded.split(/\s+/)
+  }
 
   const handler = commands[command]
   if (!handler) {
