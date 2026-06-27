@@ -1,7 +1,8 @@
 // src/lib/terminalStore.ts
 import { create } from 'zustand'
-import { FileSystem } from './fileSystem'
+import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates } from './commands/index'
+import { saveFileSystem, loadFileSystem } from './persistence'
 
 export type TerminalLine = {
   id: string
@@ -36,8 +37,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   fileSystem: new FileSystem(),
 
   initialize: () => {
-    const fs = new FileSystem()
-    fs.initializeDefaults()
+    const stored = loadFileSystem()
+    const fs = stored ? createFileSystemFromSerialized(stored) : new FileSystem()
+    if (!stored) {
+      fs.initializeDefaults()
+    }
 
     set({
       fileSystem: fs,
@@ -59,6 +63,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     if (trimmed === '') {
       get().addLine({ type: 'prompt', content: get().getPrompt() })
+      saveFileSystem(state.fileSystem)
       return
     }
 
@@ -81,6 +86,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     if (command === 'clear') {
       get().clearScreen()
+      saveFileSystem(state.fileSystem)
       return
     }
 
@@ -135,6 +141,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         .catch((err) => {
           get().addLine({ type: 'error', content: `curl: ${err.message}` })
         })
+      saveFileSystem(state.fileSystem)
       return
     }
 
@@ -148,6 +155,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     } else {
       get().addLine({ type: 'error', content: result.error || 'Unknown error' })
     }
+
+    // Auto-save filesystem state after every command
+    saveFileSystem(get().fileSystem)
   },
 
   clearScreen: () => {
