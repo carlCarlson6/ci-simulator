@@ -4,7 +4,7 @@ import { useTerminalStore } from '../lib/terminalStore'
 
 export function TerminalInput() {
   const [input, setInput] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
   
   const executeCommand = useTerminalStore((state) => state.executeCommand)
@@ -26,6 +26,15 @@ export function TerminalInput() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Auto-resize textarea as content grows (multiline input)
+  useEffect(() => {
+    const el = inputRef.current
+    if (el) {
+      el.style.height = 'auto'
+      el.style.height = el.scrollHeight + 'px'
+    }
+  }, [input])
+
   const handleSubmit = useCallback(() => {
     if (input.trim()) {
       executeCommand(input)
@@ -38,8 +47,11 @@ export function TerminalInput() {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
-        e.preventDefault()
-        handleSubmit()
+        if (!e.shiftKey) {
+          e.preventDefault()
+          handleSubmit()
+        }
+        // Shift+Enter falls through: default textarea behavior inserts newline
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         if (history.length > 0) {
@@ -111,23 +123,23 @@ export function TerminalInput() {
       ref={terminalRef}
       className="flex items-center w-full bg-terminal-bg border-t border-terminal-green-dark/30"
     >
-      <span className="whitespace-nowrap mr-2 terminal-glow select-none">
+      <span className="whitespace-nowrap mr-2 terminal-glow select-none shrink-0">
         <span className="text-terminal-green font-bold">user</span>
         <span className="text-terminal-green-dark">:</span>
         <span className="text-terminal-green-dark">{prompt.split(':')[1]}</span>
       </span>
-      <span className="terminal-cursor mr-0.5" />
-      <input
+      <textarea
         ref={inputRef}
-        type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="flex-1 bg-transparent text-terminal-green font-mono text-sm outline-none border-none ring-0 focus:ring-0 focus:outline-none terminal-input terminal-glow caret-transparent"
+        rows={1}
+        className="flex-1 bg-transparent text-terminal-green font-mono text-sm outline-none border-none ring-0 focus:ring-0 focus:outline-none terminal-input terminal-glow min-h-[1.5em] py-0.5"
         autoFocus
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="off"
+        style={{ caretColor: '#00ff00', resize: 'none', overflow: 'hidden' }}
       />
     </div>
   )
