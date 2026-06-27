@@ -1,8 +1,8 @@
-# Implementation Plan: Text Editor Modal (P004)
+# Implementation Plan: Text Editor Modal (P004) — Revised
 
 **Goal:** Add a cyberpunk-styled modal text editor that opens via the `edit <file>` command, allowing users to edit any file in the in-memory file system.
 
-**Architecture:** The `edit` command returns a special result that signals the terminal store to open the editor modal. The modal is a React component overlay with a textarea, file path header, and shortcut footer. File writes go through a new `writeFile` method on the `FileSystem` class. Keyboard shortcuts (Ctrl+S, Escape) are handled within the modal.
+**Architecture:** The `edit` command is a first-class modular command (like `cd`, `clear`) with its own handler in `src/lib/commands/edit.ts` and a `CommandEffect` that opens the editor modal via the Zustand store. The modal is a theme-aware React overlay with a textarea, file path header, and shortcut footer. File writes go through a new `writeFile` method on `FileSystem`. Keyboard shortcuts (Ctrl+S, Escape) are handled within the modal.
 
 **Tech Stack:** React, Zustand, Tailwind CSS, TypeScript
 
@@ -10,11 +10,14 @@
 
 ## Global Constraints
 
-- Follow existing cyberpunk color tokens (`--color-terminal-green`, `--color-terminal-bg`, etc.)
-- No external editor libraries — pure React textarea
+- Follow existing modular command architecture (handler in `src/lib/commands/edit.ts`, effect in same file, registered in `src/lib/commands/index.ts`)
+- Use existing cyberpunk color tokens and CSS custom properties (`--color-terminal-green`, etc.) so the modal adapts to the active theme
+- No external editor libraries — pure React `<textarea>`
 - Keep changes minimal; don't refactor unrelated code
 - Editor must work with the existing in-memory `FileSystem` (no persistence)
-- Keyboard shortcuts: `Ctrl+S` = Save, `Esc` = Quit without saving
+- Keyboard shortcuts: `Ctrl+S` = Save & Quit, `Esc` = Quit without saving
+- `edit` should auto-create missing files (not error)
+- Saving must persist filesystem state to `localStorage` immediately
 
 ---
 
@@ -37,8 +40,9 @@ In `src/lib/fileSystem.ts`, after the `readFile` method, add:
     const normalized = this.resolvePath(path)
     const entry = this.getEntry(normalized)
 
-    if (!entry) throw new Error(`edit: ${path}: No such file or directory`)
-    if (entry.type === 'directory') throw new Error(`edit: ${path}: Is a directory`)
+    if (entry?.type === 'directory') {
+      throw new Error(`edit: ${path}: Is a directory`)
+    }
 
     this.entries.set(normalized, { type: 'file', content })
   }
@@ -51,70 +55,126 @@ Expected: No errors
 
 ---
 
-## Task 2: Add `edit` command to command registry
+## Task 2: Extend `CommandResult` and `CommandEffectContext`
 
 **Files:**
-- Modify: `src/lib/commands.ts`
+- Modify: `src/lib/commands/types.ts`
+- Test: `npx tsc --noEmit`
+
+**Interfaces:**
+- Consumes: Existing types
+- Produces: Updated `CommandResult` with editor fields; updated `CommandEffectContext` with editor actions
+
+- [ ] **Step 1: Extend `CommandResult` data**
+
+In `src/lib/commands/types.ts`, add to `CommandResult.data`:
+
+```typescript
+    editorFilePath?: string
+    editorContent?: string
+```
+
+- [ ] **Step 2: Extend `CommandEffectContext`**
+
+In `src/lib/commands/types.ts`, add to `CommandEffectContext`:
+
+```typescript
+  openEditor: (filePath: string, content: string) => void
+  closeEditor: () => void
+```
+
+- [ ] **Step 3: Verify no syntax errors**
+
+Run: `npx tsc --noEmit`
+Expected: No errors
+
+---
+
+## Task 3: Create `edit` command module
+
+**Files:**
+- Create: `src/lib/commands/edit.ts`
+- Modify: `src/lib/commands/index.ts`
+- Modify: `src/lib/commands/help.ts`
 - Test: Manual — `edit` command in terminal
 
 **Interfaces:**
-- Consumes: `FileSystem.readFile()`, `FileSystem.writeFile()` (Task 1)
-- Produces: `edit` command handler; special `CommandResult` with `openEditor: true`
+- Consumes: `FileSystem.readFile()`, `FileSystem.writeFile()` (Task 1), `CommandEffectContext` (Task 2)
+- Produces: `edit` handler + effect, registered in index, listed in help
 
-- [ ] **Step 1: Extend `CommandResult` type**
-
-In `src/lib/commands.ts`, modify the `CommandResult` type:
+- [ ] **Step 1: Create `src/lib/commands/edit.ts`**
 
 ```typescript
-export type CommandResult = {
-  success: boolean
-  error?: string
-  data?: {
-    output?: string
-    newPath?: string
-    openEditor?: boolean
-    editorFilePath?: string
-    editorContent?: string
+import { CommandHandler, CommandEffect } from './types'
+
+export const MANUAL = 'edit\n\nOpen a file in the text editor.\n\nUsage: edit <file>\n  Creates the file if it does not exist.'
+export const HELP_TEXT = '  edit <file>           Open file in text editor'
+
+export const handler: CommandHandler = (args, context) => {
+  if (args.length === 0) {
+    return { success: false, error: 'edit: missing file operand' }
   }
+
+  const resolved = context.fileSystem.resolvePath(args[0], context.currentPath)
+
+  let content = ''
+  try {
+    content = context.fileSystem.readFile(resolved)
+  } catch {
+    // File doesn't exist — will be auto-created on save
+  }
+
+  return {
+    success: true,
+    data: {
+      editorFilePath: resolved,
+      editorContent: content,
+    },
+  }
+}
+
+export const effect: CommandEffect = (result, context) => {
+  if (result.success && result.data?.editorFilePath !== undefined) {
+    context.openEditor(
+      result.data.editorFilePath,
+      result.data.editorContent || ''
+    )
+    return 'handled'
+  }
+  return 'continue'
 }
 ```
 
-- [ ] **Step 2: Add `edit` command handler**
+- [ ] **Step 2: Register in `src/lib/commands/index.ts`**
 
-Add the `edit` handler to the `commands` object, before the closing brace:
-
+Add import:
 ```typescript
-  edit: (args, context) => {
-    if (args.length === 0) {
-      return { success: false, error: 'edit: missing file operand' }
-    }
-
-    try {
-      const resolved = context.fileSystem.resolvePath(args[0], context.currentPath)
-      const content = context.fileSystem.readFile(resolved)
-      return {
-        success: true,
-        data: {
-          openEditor: true,
-          editorFilePath: resolved,
-          editorContent: content,
-        },
-      }
-    } catch (error) {
-      return { success: false, error: (error as Error).message }
-    }
-  },
+import { handler as editHandler, effect as editEffect } from './edit'
 ```
 
-- [ ] **Step 3: Update `help` command**
-
-Modify the `help` command output array to include:
-
+Add to `commands` record:
 ```typescript
-'  edit <file>     Open file in text editor',
+  edit: editHandler,
 ```
 
-Place it after `touch` and before `rm`.
+Add to `commandEffects` record:
+```typescript
+  edit: editEffect,
+```
+
+- [ ] **Step 3: Update `src/lib/commands/help.ts`**
+
+Add import:
+```typescript
+import { HELP_TEXT as editHelp } from './edit'
+```
+
+Add to the output array inside `handler` (after `touchHelp` and before `rmHelp`):
+```typescript
+      touchHelp,
+      editHelp,
+      rmHelp,
+```
 
 - [ ] **Step 4: Verify no syntax errors**
 
@@ -123,19 +183,19 @@ Expected: No errors
 
 ---
 
-## Task 3: Extend terminal store with editor state
+## Task 4: Extend terminal store with editor state and actions
 
 **Files:**
 - Modify: `src/lib/terminalStore.ts`
 - Test: Manual — `edit` command opens editor
 
 **Interfaces:**
-- Consumes: `CommandResult.data.openEditor` (Task 2)
-- Produces: `editorOpen: boolean`, `editorFilePath: string | null`, `editorContent: string | null`, `openEditor(filePath, content)`, `closeEditor()`, `saveEditor(content)` store actions
+- Consumes: `CommandEffectContext.openEditor/closeEditor` (Task 2), `FileSystem.writeFile` (Task 1)
+- Produces: `editorOpen`, `editorFilePath`, `editorContent`, `openEditor()`, `closeEditor()`, `saveEditor()` store actions
 
 - [ ] **Step 1: Add editor state to `TerminalState` type**
 
-In `src/lib/terminalStore.ts`, add these fields to `TerminalState`:
+In `src/lib/terminalStore.ts`, add to `TerminalState`:
 
 ```typescript
   editorOpen: boolean
@@ -148,7 +208,7 @@ In `src/lib/terminalStore.ts`, add these fields to `TerminalState`:
 
 - [ ] **Step 2: Add initial state**
 
-In the `create<TerminalState>` call, add initial values:
+In the `create<TerminalState>` call, add:
 
 ```typescript
   editorOpen: false,
@@ -156,26 +216,27 @@ In the `create<TerminalState>` call, add initial values:
   editorContent: null,
 ```
 
-- [ ] **Step 3: Modify `executeCommand` to handle `edit`**
+- [ ] **Step 3: Update `executeCommand` to wire `CommandEffectContext`**
 
-In the `executeCommand` method, after the `cd` handling block and before the output block, add:
+In `executeCommand`, within the `effect` call block, extend the context object:
 
 ```typescript
-    if (command === 'edit' && result.success && result.data?.openEditor) {
-      set({
-        editorOpen: true,
-        editorFilePath: result.data.editorFilePath || null,
-        editorContent: result.data.editorContent || '',
+      const outcome = effect(result, {
+        fileSystem: state.fileSystem,
+        currentPath: state.currentPath,
+        previousPath: state.previousPath,
+        addLine: (type, content) => get().addLine({ type, content }),
+        setPaths: (current, previous) => set({ currentPath: current, previousPath: previous }),
+        clearScreen: () => get().clearScreen(),
+        saveFileSystem: (fs) => saveFileSystem(fs),
+        openEditor: (filePath, content) => get().openEditor(filePath, content),
+        closeEditor: () => get().closeEditor(),
       })
-      return
-    }
 ```
 
-This prevents the normal prompt/output flow when the editor opens.
+- [ ] **Step 4: Add editor actions to the store**
 
-- [ ] **Step 4: Add editor actions**
-
-Add these actions to the store object:
+Add these actions inside the `create<TerminalState>` object:
 
 ```typescript
   openEditor: (filePath: string, content: string) => {
@@ -199,6 +260,7 @@ Add these actions to the store object:
     const state = get()
     if (state.editorFilePath) {
       state.fileSystem.writeFile(state.editorFilePath, content)
+      saveFileSystem(state.fileSystem)
     }
     set({
       editorOpen: false,
@@ -217,15 +279,15 @@ Expected: No errors
 
 ---
 
-## Task 4: Create EditorModal component
+## Task 5: Create `EditorModal` component
 
 **Files:**
 - Create: `src/components/EditorModal.tsx`
 - Test: Manual — render and keyboard shortcuts
 
 **Interfaces:**
-- Consumes: `editorFilePath`, `editorContent`, `saveEditor(content)`, `closeEditor()` from store (Task 3)
-- Produces: `EditorModal` React component
+- Consumes: `editorFilePath`, `editorContent`, `saveEditor(content)`, `closeEditor()` from store (Task 4)
+- Produces: `EditorModal` React component (theme-aware)
 
 - [ ] **Step 1: Create the component**
 
@@ -277,10 +339,17 @@ export function EditorModal() {
     >
       <div
         className="flex flex-col w-[90vw] h-[85vh] max-w-4xl bg-terminal-bg border-2 border-terminal-green-dark/50 rounded-lg shadow-[0_0_30px_rgba(0,255,0,0.2)] overflow-hidden"
+        style={{
+          borderColor: 'color-mix(in srgb, var(--color-terminal-green) 30%, transparent)',
+          boxShadow: '0 0 30px color-mix(in srgb, var(--color-terminal-green) 15%, transparent)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-terminal-green-dark/30 bg-terminal-bg">
+        <div
+          className="flex items-center justify-between px-4 py-3 border-b border-terminal-green-dark/30 bg-terminal-bg"
+          style={{ borderBottomColor: 'color-mix(in srgb, var(--color-terminal-green) 20%, transparent)' }}
+        >
           <span className="text-terminal-green font-bold terminal-glow">
             EDIT: {fileName}
           </span>
@@ -299,11 +368,14 @@ export function EditorModal() {
           spellCheck={false}
           autoComplete="off"
           autoCapitalize="off"
-          style={{ caretColor: '#00ff00', lineHeight: '1.6' }}
+          style={{ caretColor: 'var(--color-terminal-green)', lineHeight: '1.6' }}
         />
 
         {/* Footer with shortcuts */}
-        <div className="flex items-center justify-between px-4 py-2 border-t border-terminal-green-dark/30 bg-terminal-bg text-terminal-green-dark text-xs font-mono">
+        <div
+          className="flex items-center justify-between px-4 py-2 border-t border-terminal-green-dark/30 bg-terminal-bg text-terminal-green-dark text-xs font-mono"
+          style={{ borderTopColor: 'color-mix(in srgb, var(--color-terminal-green) 20%, transparent)' }}
+        >
           <span>
             <span className="text-terminal-green font-bold">[Ctrl+S]</span> Save & Quit
           </span>
@@ -324,28 +396,27 @@ Expected: No errors
 
 ---
 
-## Task 5: Integrate EditorModal into Terminal
+## Task 6: Integrate `EditorModal` into `Terminal`
 
 **Files:**
 - Modify: `src/components/Terminal.tsx`
 - Test: Manual — `edit` command opens modal, Escape/Ctrl+S work
 
 **Interfaces:**
-- Consumes: `EditorModal` component (Task 4), `editorOpen` from store (Task 3)
+- Consumes: `EditorModal` component (Task 5)
 - Produces: Updated `Terminal` component
 
-- [ ] **Step 1: Import and render EditorModal**
+- [ ] **Step 1: Import and render `EditorModal`**
 
-In `src/components/Terminal.tsx`, add the import:
+In `src/components/Terminal.tsx`:
 
+Add import:
 ```typescript
 import { EditorModal } from './EditorModal'
 ```
 
-And inside the component's return JSX, add `<EditorModal />` just before the scanlines overlay:
-
+Add inside the return JSX, just before the scanlines overlay:
 ```tsx
-      </div>
       <EditorModal />
       {/* Scanlines overlay */}
 ```
@@ -357,7 +428,7 @@ Expected: No errors
 
 ---
 
-## Task 6: Manual Verification
+## Task 7: Manual Verification
 
 **Files:** None
 **Test:** Manual browser testing
@@ -384,6 +455,8 @@ Type:
 cat /home/user/welcome.txt
 ```
 Expected: Shows the updated content.
+Refresh page.
+Expected: Updated content is still there (persisted to localStorage).
 
 - [ ] **Step 4: Test quit without saving**
 
@@ -394,30 +467,65 @@ edit /home/user/welcome.txt
 Make changes, press `Escape`.
 Expected: Modal closes, prompt returns. `cat` shows original content (no save).
 
-- [ ] **Step 5: Test error case**
+- [ ] **Step 5: Test auto-create on new file**
 
 Type:
 ```
-edit /nonexistent/file.txt
+edit /home/user/newfile.txt
 ```
-Expected: Red error: `cat: /nonexistent/file.txt: No such file or directory`
+Type some text, press `Ctrl+S`.
+Expected: Modal closes, terminal shows `Saved /home/user/newfile.txt`, prompt returns.
+Type:
+```
+cat /home/user/newfile.txt
+```
+Expected: Shows the new content.
 
-- [ ] **Step 6: Test `help` includes `edit`**
+- [ ] **Step 6: Test error case**
+
+Type:
+```
+edit /home/user
+```
+Expected: Red error: `edit: /home/user: Is a directory`
+
+Type:
+```
+edit
+```
+Expected: Red error: `edit: missing file operand`
+
+- [ ] **Step 7: Test `help` includes `edit`**
 
 Type:
 ```
 help
 ```
-Expected: `edit <file>` appears in the command list.
+Expected: `edit <file>` appears in the command list under File System Commands.
+
+- [ ] **Step 8: Test theme switching**
+
+Type:
+```
+theme amber
+```
+Then:
+```
+edit /home/user/welcome.txt
+```
+Expected: Modal borders, caret, glow, and shadows use amber/orange tones, not green.
 
 ---
 
-## Files Modified
+## Files Modified / Created
 
 | File | Tasks | Changes |
 |------|-------|---------|
 | `src/lib/fileSystem.ts` | 1 | Add `writeFile()` method |
-| `src/lib/commands.ts` | 2 | Extend `CommandResult`, add `edit` handler, update `help` |
-| `src/lib/terminalStore.ts` | 3 | Add editor state and actions to Zustand store |
-| `src/components/EditorModal.tsx` | 4 | Create modal overlay component |
-| `src/components/Terminal.tsx` | 5 | Render `<EditorModal />` |
+| `src/lib/commands/types.ts` | 2 | Extend `CommandResult.data` and `CommandEffectContext` with editor fields/actions |
+| `src/lib/commands/edit.ts` | 3 | Create new command handler + effect |
+| `src/lib/commands/index.ts` | 3 | Import & register `edit` handler + effect |
+| `src/lib/commands/help.ts` | 3 | Import & list `edit` help text |
+| `src/lib/terminalStore.ts` | 4 | Add editor state/actions; wire `openEditor`/`closeEditor` into effect context |
+| `src/components/EditorModal.tsx` | 5 | Create theme-aware modal overlay component |
+| `src/components/Terminal.tsx` | 6 | Render `<EditorModal />` |
