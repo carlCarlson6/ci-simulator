@@ -12,7 +12,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
 > **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).  
 > **Environment Variables:** ✅ Complete — see [P010-environment-variables.md](plans/P010-environment-variables.md).  
-> **Virtual Web Page Hosting:** 📝 Planned — see [P011-wwwroot-pages.md](plans/P011-wwwroot-pages.md).
+> **Virtual Web Page Hosting:** ✅ Complete — see [P011-wwwroot-pages.md](plans/P011-wwwroot-pages.md).
 
 ---
 
@@ -157,7 +157,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 | 17. Markdown Renderer | ✅ Complete | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
 | 18. Environment Variables | ✅ Complete | [P010](plans/P010-environment-variables.md) — `env`/`export`/`echo $VAR` |
-| 19. Virtual Web Page Hosting | 📝 Planned | [P011](plans/P011-wwwroot-pages.md) — serve HTML/CSS pages from `~/wwwroot/` at `/:pageName` |
+| 19. Virtual Web Page Hosting | ✅ Complete | [P011](plans/P011-wwwroot-pages.md) — serve HTML/CSS pages from `~/wwwroot/` at `/:pageName` |
 
 ---
 
@@ -202,11 +202,13 @@ The app will be available at `http://localhost:3000` (or the next available port
 - [x] **Text Editor Modal (`edit` command)** — Theme-aware modal editor with Ctrl+S save and Escape quit
 - [x] **`md <file>` — Markdown Renderer** — DIY parser with modal viewer, headers, lists, code blocks, blockquotes, inline formatting
 - [x] **`env` / `export` / `echo $VAR` — Environment Variables** — Zustand-backed env var map, `$VAR` expansion in command args
+- [x] **wwwroot pages** — Serve HTML/CSS from `~/wwwroot/<page>/` at `/:pageName` via sandboxed iframe
 
 ## 📝 Future TODO
 
 - [x] `md <file>` — markdown renderer with DIY parser and modal viewer ([P009](plans/P009-markdown-renderer.md))
 - [x] `env` / `export` / `echo $VAR` — environment variables ([P010](plans/P010-environment-variables.md))
+- [x] wwwroot pages — serve HTML/CSS from `~/wwwroot/` at `/:pageName` ([P011](plans/P011-wwwroot-pages.md))
 - [ ] Pipes and redirects (`|`, `>`, `>>`)
 - [ ] `figlet` — ASCII block letters
 - [ ] Terminal games (`snake`, `2048`, `tetris`)
