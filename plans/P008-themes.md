@@ -2,7 +2,7 @@
 
 Add a fixed/static set of terminal color themes, selectable via a `theme <name>` command. The current cyberpunk green-on-black palette remains the default. The selected theme persists in `localStorage` across reloads. The `reset` command does NOT reset the theme choice.
 
-**Status:** 📝 Planned
+**Status:** ✅ Complete
 
 ---
 
@@ -159,13 +159,13 @@ Available themes: cyberpunk, amber, phosphor, commodore, solarized
 
 ## Acceptance Criteria
 
-- [ ] `theme` with no args prints all 5 themes, current one marked `*`.
-- [ ] `theme amber` switches the terminal to amber CRT colors instantly.
-- [ ] `theme invalid` prints an error and lists valid names.
-- [ ] After switching, refreshing the page keeps the selected theme.
-- [ ] `reset` clears filesystem but does NOT revert the theme.
-- [ ] No color flash on initial page load when a non-default theme is saved.
-- [ ] All existing terminal features (commands, glow, scanlines, scrollbar) work in every theme.
+- [x] `theme` with no args prints all 5 themes, current one marked `*`.
+- [x] `theme amber` switches the terminal to amber CRT colors instantly.
+- [x] `theme invalid` prints an error and lists valid names.
+- [x] After switching, refreshing the page keeps the selected theme.
+- [x] `reset` clears filesystem but does NOT revert the theme.
+- [x] No color flash on initial page load when a non-default theme is saved.
+- [x] All existing terminal features (commands, glow, scanlines, scrollbar) work in every theme.
 
 ---
 
