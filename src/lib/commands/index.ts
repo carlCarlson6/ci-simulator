@@ -3,6 +3,8 @@ import { CommandContext, CommandResult, CommandHandler, CommandEffect } from './
 import { handler as helpHandler } from './help'
 import { handler as clearHandler, effect as clearEffect } from './clear'
 import { handler as lsHandler } from './ls'
+import { handler as treeHandler } from './tree'
+import { handler as gtreeHandler } from './gtree'
 import { handler as cdHandler, effect as cdEffect } from './cd'
 import { handler as pwdHandler } from './pwd'
 import { handler as catHandler } from './cat'
@@ -23,6 +25,8 @@ const commands: Record<string, CommandHandler> = {
   help: helpHandler,
   clear: clearHandler,
   ls: lsHandler,
+  tree: treeHandler,
+  gtree: gtreeHandler,
   cd: cdHandler,
   pwd: pwdHandler,
   cat: catHandler,

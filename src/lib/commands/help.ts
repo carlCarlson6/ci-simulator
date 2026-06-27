@@ -1,5 +1,7 @@
 import { CommandHandler } from './types'
 import { HELP_TEXT as lsHelp } from './ls'
+import { HELP_TEXT as treeHelp } from './tree'
+import { HELP_TEXT as gtreeHelp } from './gtree'
 import { HELP_TEXT as cdHelp } from './cd'
 import { HELP_TEXT as pwdHelp } from './pwd'
 import { HELP_TEXT as catHelp } from './cat'
@@ -27,6 +29,8 @@ export const handler: CommandHandler = () => ({
       '',
       'File System Commands:',
       lsHelp,
+      treeHelp,
+      gtreeHelp,
       cdHelp,
       pwdHelp,
       catHelp,

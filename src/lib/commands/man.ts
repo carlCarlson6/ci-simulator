@@ -1,6 +1,8 @@
 import { CommandHandler } from './types'
 import { MANUAL as clearManual } from './clear'
 import { MANUAL as lsManual } from './ls'
+import { MANUAL as treeManual } from './tree'
+import { MANUAL as gtreeManual } from './gtree'
 import { MANUAL as cdManual } from './cd'
 import { MANUAL as pwdManual } from './pwd'
 import { MANUAL as catManual } from './cat'
@@ -19,6 +21,8 @@ const manPages: Record<string, string> = {
   help: 'help\n\nShow available commands and brief descriptions.\n\nUsage: help',
   clear: clearManual,
   ls: lsManual,
+  tree: treeManual,
+  gtree: gtreeManual,
   cd: cdManual,
   pwd: pwdManual,
   cat: catManual,

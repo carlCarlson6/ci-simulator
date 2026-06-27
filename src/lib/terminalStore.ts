@@ -56,7 +56,13 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       fs.initializeDefaults()
     }
 
-    const startPath = fs.isDirectory('/home/user') ? '/home/user' : '/'
+    const savedPath = localStorage.getItem('ci-simulator:currentPath')
+    let startPath = '/'
+    if (savedPath && fs.isDirectory(savedPath)) {
+      startPath = savedPath
+    } else if (fs.isDirectory('/home/user')) {
+      startPath = '/home/user'
+    }
 
     const savedTheme = localStorage.getItem('ci-simulator:theme')
     const initialTheme = savedTheme && getTheme(savedTheme) ? savedTheme : 'cyberpunk'
@@ -115,7 +121,10 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         currentPath: state.currentPath,
         previousPath: state.previousPath,
         addLine: (type, content) => get().addLine({ type, content }),
-        setPaths: (current, previous) => set({ currentPath: current, previousPath: previous }),
+        setPaths: (current, previous) => {
+          set({ currentPath: current, previousPath: previous })
+          localStorage.setItem('ci-simulator:currentPath', current)
+        },
         clearScreen: () => get().clearScreen(),
         saveFileSystem: (fs) => saveFileSystem(fs),
         openEditor: (filePath, content) => get().openEditor(filePath, content),
