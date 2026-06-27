@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.0.0",
     "@tanstack/react-router": "^1.120.0",
     "@tanstack/react-start": "^1.168.0",
     "react": "^19.0.0",

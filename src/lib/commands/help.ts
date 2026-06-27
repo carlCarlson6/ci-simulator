@@ -20,6 +20,9 @@ import { HELP_TEXT as editHelp } from './edit'
 import { HELP_TEXT as mdHelp } from './md'
 import { HELP_TEXT as envHelp } from './env'
 import { HELP_TEXT as exportHelp } from './export'
+import { HELP_TEXT as loginHelp } from './login'
+import { HELP_TEXT as logoutHelp } from './logout'
+import { HELP_TEXT as whoamiHelp } from './whoami'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -47,6 +50,9 @@ export const handler: CommandHandler = () => ({
       '',
       'System Commands:',
       curlHelp,
+      loginHelp,
+      logoutHelp,
+      whoamiHelp,
       '',
       'General Commands:',
       '  help                  Show this help message',

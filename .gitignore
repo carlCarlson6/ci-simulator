@@ -2,3 +2,5 @@
 /dist
 /node_modules
 /src/**/*.js
+.env.local
+.env.*.local

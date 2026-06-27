@@ -3,13 +3,18 @@ import { useEffect, useRef } from 'react'
 import { useTerminalStore } from '../lib/terminalStore'
 
 function renderPrompt(content: string) {
-  const rest = content.slice(5) // after 'user:'
+  const colonIdx = content.indexOf(':')
+  if (colonIdx === -1) return <span>{content}</span>
+
+  const prefix = content.slice(0, colonIdx)
+  const rest = content.slice(colonIdx + 1)
   const spaceIdx = rest.indexOf(' ')
   const path = spaceIdx === -1 ? rest : rest.slice(0, spaceIdx)
   const command = spaceIdx === -1 ? '' : rest.slice(spaceIdx)
+
   return (
     <span>
-      <span className="text-terminal-green font-bold">user</span>
+      <span className="text-terminal-green font-bold">{prefix}</span>
       <span className="text-terminal-green-dark">:</span>
       <span className="text-terminal-green-dark">{path}</span>
       <span>{command}</span>
@@ -45,7 +50,7 @@ export function TerminalOutput() {
                 : 'text-terminal-green-dark opacity-70'
            }`}
         >
-          {line.type === 'prompt' && line.content.startsWith('user:') ? (
+          {line.type === 'prompt' && line.content.includes(':') ? (
             renderPrompt(line.content)
           ) : (
             line.content

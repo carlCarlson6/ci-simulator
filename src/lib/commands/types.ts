@@ -8,6 +8,7 @@ export type CommandContext = {
   currentTheme: string
   setTheme: (name: string) => void
   envVars: Record<string, string>
+  user?: string | null
 }
 
 export type CommandResult = {

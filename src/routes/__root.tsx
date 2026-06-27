@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import { ClerkProvider } from '@clerk/clerk-react'
 import '../styles/terminal.css'
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const hasClerkKey = clerkPubKey && clerkPubKey !== 'pk_test_YOUR_PUBLISHABLE_KEY_HERE'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -21,7 +25,13 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      {hasClerkKey ? (
+        <ClerkProvider publishableKey={clerkPubKey}>
+          <Outlet />
+        </ClerkProvider>
+      ) : (
+        <Outlet />
+      )}
     </RootDocument>
   )
 }

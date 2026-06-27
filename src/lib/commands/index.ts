@@ -23,6 +23,9 @@ import { handler as editHandler, effect as editEffect } from './edit'
 import { handler as mdHandler, effect as mdEffect } from './md'
 import { handler as envHandler } from './env'
 import { handler as exportHandler, effect as exportEffect } from './export'
+import { handler as loginHandler } from './login'
+import { handler as logoutHandler } from './logout'
+import { handler as whoamiHandler } from './whoami'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -48,6 +51,9 @@ const commands: Record<string, CommandHandler> = {
   md: mdHandler,
   env: envHandler,
   export: exportHandler,
+  login: loginHandler,
+  logout: logoutHandler,
+  whoami: whoamiHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { useTerminalStore } from '../lib/terminalStore'
 import { getTheme, getDefaultTheme } from '../lib/themes'
+import { AuthSyncGate } from '../lib/auth'
 import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
 import { EditorModal } from '~/lib/commands/edit'
@@ -37,6 +38,7 @@ export function Terminal() {
         '--color-terminal-magenta': theme.colors.magenta,
       } as React.CSSProperties}
     >
+      <AuthSyncGate />
       <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)]">
         <div className="flex-1 overflow-hidden min-h-0">
           <TerminalOutput />

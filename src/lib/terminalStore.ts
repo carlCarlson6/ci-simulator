@@ -4,12 +4,18 @@ import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates, getCommandEffect } from './commands/index'
 import { saveFileSystem, loadFileSystem, clearFileSystemStorage } from './persistence'
 import { getTheme } from './themes'
+import { getPromptPrefix } from './auth'
 
 export type TerminalLine = {
   id: string
   type: 'prompt' | 'output' | 'error' | 'system'
   content: string
   timestamp: Date
+}
+
+type AuthCallbacks = {
+  openSignIn?: () => void
+  signOut?: () => void
 }
 
 type TerminalState = {
@@ -26,6 +32,8 @@ type TerminalState = {
   markdownFilePath: string | null
   markdownContent: string | null
   envVars: Record<string, string>
+  user: string | null
+  authCallbacks: AuthCallbacks
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -40,6 +48,8 @@ type TerminalState = {
   openMarkdown: (filePath: string, content: string) => void
   closeMarkdown: () => void
   setEnvVar: (key: string, value: string) => void
+  setUser: (user: string | null) => void
+  setAuthCallbacks: (callbacks: AuthCallbacks) => void
 }
 
 let lineId = 0
@@ -59,6 +69,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   markdownFilePath: null,
   markdownContent: null,
   envVars: {},
+  user: null,
+  authCallbacks: {},
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -126,6 +138,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       currentTheme: state.currentTheme,
       setTheme: get().setTheme,
       envVars: state.envVars,
+      user: state.user,
     })
 
     // Record command in history AFTER execution
@@ -182,7 +195,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   getPrompt: () => {
     const path = get().currentPath === '/home/user' ? '~' : get().currentPath
-    return `user:${path}`
+    const prefix = getPromptPrefix(get().user)
+    return `${prefix}:${path}`
   },
 
   getCompletionCandidates: (input: string) => {
@@ -252,6 +266,14 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       localStorage.setItem('ci-simulator:envVars', JSON.stringify(envVars))
       return { envVars }
     })
+  },
+
+  setUser: (user: string | null) => {
+    set({ user })
+  },
+
+  setAuthCallbacks: (callbacks: AuthCallbacks) => {
+    set({ authCallbacks: callbacks })
   },
 
   openMarkdown: (filePath: string, content: string) => {

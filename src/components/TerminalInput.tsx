@@ -129,9 +129,17 @@ export function TerminalInput() {
       className="flex items-center w-full bg-terminal-bg border-t border-terminal-green-dark/30"
     >
       <span className="whitespace-nowrap mr-2 terminal-glow select-none shrink-0">
-        <span className="text-terminal-green font-bold">user</span>
-        <span className="text-terminal-green-dark">:</span>
-        <span className="text-terminal-green-dark">{prompt.split(':')[1]}</span>
+        {(() => {
+          const prefix = prompt.split(':')[0]
+          const path = prompt.split(':')[1]
+          return (
+            <>
+              <span className="text-terminal-green font-bold">{prefix}</span>
+              <span className="text-terminal-green-dark">:</span>
+              <span className="text-terminal-green-dark">{path}</span>
+            </>
+          )
+        })()}
       </span>
       <textarea
         ref={inputRef}
