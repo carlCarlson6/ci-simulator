@@ -3,7 +3,7 @@
 A full-screen terminal simulator built with **React**, **Vite**, **TanStack Router**, and **TypeScript**. Features a cyberpunk/Matrix-inspired UI with neon green-on-black aesthetics, a fully simulated in-memory file system, and real server-side system info via a Vite API middleware.
 
 > **Implementation Status:** All 9 phases of [P001-implementation.md](plans/P001-implementation.md) completed. Terminal is fully functional.  
-> **UX Improvements:** In progress — see [P002-terminal-ux-improvements.md](plans/P002-terminal-ux-improvements.md)
+> **UX Improvements:** ✅ Complete — see [P002-terminal-ux-improvements.md](plans/P002-terminal-ux-improvements.md)
 
 ---
 
@@ -118,7 +118,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 7. Tab Completion | ✅ Complete | Commands and file paths |
 | 8. Polish & Edge Cases | ✅ Complete | Error handling, easter eggs, key shortcuts |
 | 9. Future Enhancements List | ✅ Complete | Documented in README below |
-| 10. Terminal UX Improvements | 🔄 In Progress | [P002](plans/P002-terminal-ux-improvements.md) — focus, padding, scroll, styling |
+| 10. Terminal UX Improvements | ✅ Complete | [P002](plans/P002-terminal-ux-improvements.md) — focus, padding, scroll, styling |
 
 ---
 

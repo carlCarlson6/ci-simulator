@@ -8,7 +8,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Eliminate the default browser outline/ring when the input is focused, replacing it with a subtle terminal glow.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/TerminalInput.tsx`, `src/styles/terminal.css`
 
@@ -26,7 +26,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Ensure the input regains focus automatically when the user returns from another browser tab.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/TerminalInput.tsx`
 
@@ -45,7 +45,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Prevent text and prompts from hugging the inner green border of the terminal frame.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/Terminal.tsx`
 
@@ -66,7 +66,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Make prompt lines and command outputs visually distinct so users can easily scan command sessions.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/TerminalOutput.tsx`
 
@@ -88,7 +88,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Ensure the output area properly scrolls when content overflows, while the input stays fixed at the bottom.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/Terminal.tsx`, `src/components/TerminalOutput.tsx`
 
@@ -107,7 +107,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Guarantee the input bar never gets pushed up or clipped, regardless of output volume.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/Terminal.tsx`
 
@@ -125,7 +125,7 @@ This document details the visual and interaction refinements to the terminal sim
 
 **Goal:** Make the outer terminal frame padding adapt to screen size so mobile isn't cramped.
 
-**Status:** ⬜ PENDING
+**Status:** ✅ COMPLETE
 
 **Implementation:** `src/components/Terminal.tsx`
 
@@ -143,13 +143,13 @@ This document details the visual and interaction refinements to the terminal sim
 
 ## Build Checklist
 
-- [ ] Task 1: Remove Browser Focus Ring on Input
-- [ ] Task 2: Always Auto-Focus Input
-- [ ] Task 3: Padding Between Window Border and CLI Content
-- [ ] Task 4: Visual Difference Between User Input and Printed Result
-- [ ] Task 5: Scroll When Content Exceeds Window
-- [ ] Task 6: Input Stuck to Bottom
-- [ ] Task 7: Responsive Padding (Bonus)
+- [x] Task 1: Remove Browser Focus Ring on Input
+- [x] Task 2: Always Auto-Focus Input
+- [x] Task 3: Padding Between Window Border and CLI Content
+- [x] Task 4: Visual Difference Between User Input and Printed Result
+- [x] Task 5: Scroll When Content Exceeds Window
+- [x] Task 6: Input Stuck to Bottom
+- [x] Task 7: Responsive Padding (Bonus)
 
 ---
 
