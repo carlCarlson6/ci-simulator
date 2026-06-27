@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'VT323', 'Courier New', monospace;
   --color-terminal-bg: #000000;
   --color-terminal-green: #00ff00;
   --color-terminal-green-dim: #006600;
@@ -16,7 +16,8 @@
 body {
   background-color: #000000;
   color: #00ff00;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 20px;
   margin: 0;
   padding: 0;
   overflow: hidden;

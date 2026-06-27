@@ -133,7 +133,7 @@ export function TerminalInput() {
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         rows={1}
-        className="flex-1 bg-transparent text-terminal-green font-mono text-sm outline-none border-none ring-0 focus:ring-0 focus:outline-none terminal-input terminal-glow min-h-[1.5em] py-0.5"
+        className="flex-1 bg-transparent text-terminal-green font-mono outline-none border-none ring-0 focus:ring-0 focus:outline-none terminal-input terminal-glow min-h-[1.5em] py-0.5"
         autoFocus
         spellCheck={false}
         autoComplete="off"
