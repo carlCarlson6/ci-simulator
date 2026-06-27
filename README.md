@@ -10,7 +10,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **TanStack Start Migration:** ✅ Complete — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
-> **Markdown Renderer:** 📝 Planned — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).
+> **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).
 
 ---
 
@@ -21,7 +21,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 **Core Features:**
 - Full-screen terminal UI with neon green-on-black color scheme
 - In-memory file system (flat Map structure) with pre-populated directories and files
-- 22 implemented commands with color-coded output
+- 23 implemented commands with color-coded output
 - Command history (up/down arrows) — session-only, not persisted
 - Tab completion for commands and file paths
 - Type-safe server functions for HTTP proxy (`curl` via `createServerFn`)
@@ -149,7 +149,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 14. TanStack Start Migration | ✅ Complete | [P006](plans/P006-tanstack-start-migration.md) — migrated to TanStack Start SPA mode, replaced Vite middleware with `createServerFn` |
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
-| 17. Markdown Renderer | 📝 Planned | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
+| 17. Markdown Renderer | ✅ Complete | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
 
 ---
 
@@ -192,10 +192,11 @@ The app will be available at `http://localhost:3000` (or the next available port
 - [x] **File persistence (`localStorage`)** — Filesystem state survives browser refreshes; `reset` command clears storage
 - [x] **`theme` command** — 5 static color palettes (cyberpunk, amber, phosphor, commodore, solarized), persisted in `localStorage`
 - [x] **Text Editor Modal (`edit` command)** — Theme-aware modal editor with Ctrl+S save and Escape quit
+- [x] **`md <file>` — Markdown Renderer** — DIY parser with modal viewer, headers, lists, code blocks, blockquotes, inline formatting
 
 ## 📝 Future TODO
 
-- [ ] `md <file>` — markdown renderer with DIY parser and modal viewer ([P009](plans/P009-markdown-renderer.md))
+- [x] `md <file>` — markdown renderer with DIY parser and modal viewer ([P009](plans/P009-markdown-renderer.md))
 - [ ] `env` / `export` / `echo $VAR` — environment variables
 - [ ] Pipes and redirects (`|`, `>`, `>>`)
 - [ ] `figlet` — ASCII block letters

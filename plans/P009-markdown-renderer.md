@@ -274,7 +274,12 @@ md: mdManual,
 
 ## Status
 
-**Status:** 📝 Planned — implementation pending.
+**Status:** ✅ Complete — all files created, command registered, build passes.
+
+### Commit History
+1. `a9a05e3` — feat(markdown): add DIY markdown parser, modal component, md command handler, and extend command types
+2. `d8d20c4` — feat(markdown): add markdown state and actions to terminal store
+3. `85380a1` — feat(markdown): register md command, wire modal, add help and man entries
 
 ---
 
