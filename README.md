@@ -9,7 +9,8 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Filesystem Persistence:** ✅ Complete — see [P005-filesystem-localstorage-persistence.md](plans/P005-filesystem-localstorage-persistence.md)  
 > **TanStack Start Migration:** ✅ Complete — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
-> **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).
+> **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
+> **Markdown Renderer:** 📝 Planned — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).
 
 ---
 
@@ -87,7 +88,8 @@ plans/
 ├── P004-text-editor-modal.md           # In-terminal text editor
 ├── P005-filesystem-localstorage-persistence.md  # File system persistence
 ├── P006-tanstack-start-migration.md    # TanStack Start migration
-└── P007-clerk-authentication.md        # Clerk authentication integration
+├── P007-clerk-authentication.md        # Clerk authentication integration
+└── P009-markdown-renderer.md           # Markdown renderer modal
 vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 ```
 
@@ -114,6 +116,7 @@ vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 | `cowsay` | Simulated | ASCII cow with speech bubble |
 | `history` | Simulated | Show command history |
 | `edit` | Simulated | Open file in text editor modal |
+| `md` | Simulated | Render markdown file in modal viewer |
 | `theme` | Simulated | Switch color theme |
 | `reset` | Simulated | Reset filesystem to defaults (clears storage) |
 | `login` | **Auth** | Open Clerk authentication modal |
@@ -146,6 +149,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 14. TanStack Start Migration | ✅ Complete | [P006](plans/P006-tanstack-start-migration.md) — migrated to TanStack Start SPA mode, replaced Vite middleware with `createServerFn` |
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
+| 17. Markdown Renderer | 📝 Planned | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
 
 ---
 
@@ -191,6 +195,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 
 ## 📝 Future TODO
 
+- [ ] `md <file>` — markdown renderer with DIY parser and modal viewer ([P009](plans/P009-markdown-renderer.md))
 - [ ] `env` / `export` / `echo $VAR` — environment variables
 - [ ] Pipes and redirects (`|`, `>`, `>>`)
 - [ ] `figlet` — ASCII block letters
