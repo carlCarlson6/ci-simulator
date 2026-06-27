@@ -19,6 +19,8 @@ export type CommandResult = {
     curlMethod?: string
     editorFilePath?: string
     editorContent?: string
+    markdownFilePath?: string
+    markdownContent?: string
   }
 }
 
@@ -32,6 +34,8 @@ export type CommandEffectContext = {
   saveFileSystem: (fs: FileSystem) => void
   openEditor: (filePath: string, content: string) => void
   closeEditor: () => void
+  openMarkdown: (filePath: string, content: string) => void
+  closeMarkdown: () => void
 }
 
 export type CommandEffect = (
