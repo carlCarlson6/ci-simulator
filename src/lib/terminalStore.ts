@@ -62,9 +62,13 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       currentTheme: initialTheme,
     })
 
-    const motd = fs.readFile('/etc/motd')
-    if (motd) {
-      get().addLine({ type: 'system', content: motd })
+    try {
+      const motd = fs.readFile('/etc/motd')
+      if (motd) {
+        get().addLine({ type: 'system', content: motd })
+      }
+    } catch {
+      // /etc/motd not found, skip
     }
   },
 
