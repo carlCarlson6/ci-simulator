@@ -17,6 +17,8 @@ export type CommandResult = {
     newPath?: string
     curlUrl?: string
     curlMethod?: string
+    editorFilePath?: string
+    editorContent?: string
   }
 }
 
@@ -28,6 +30,8 @@ export type CommandEffectContext = {
   setPaths: (current: string, previous: string) => void
   clearScreen: () => void
   saveFileSystem: (fs: FileSystem) => void
+  openEditor: (filePath: string, content: string) => void
+  closeEditor: () => void
 }
 
 export type CommandEffect = (

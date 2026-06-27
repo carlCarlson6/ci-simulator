@@ -109,6 +109,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         setPaths: (current, previous) => set({ currentPath: current, previousPath: previous }),
         clearScreen: () => get().clearScreen(),
         saveFileSystem: (fs) => saveFileSystem(fs),
+        openEditor: (_filePath, _content) => {},
+        closeEditor: () => {},
       })
 
       if (outcome === 'handled') {
