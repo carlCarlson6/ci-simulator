@@ -111,7 +111,7 @@ export function TerminalInput() {
   return (
     <div
       ref={terminalRef}
-      className="flex items-center w-full py-3 bg-terminal-bg border-t border-terminal-green-dark/30"
+      className="flex items-center w-full bg-terminal-bg border-t border-terminal-green-dark/30"
     >
       <span className="whitespace-nowrap mr-2 terminal-glow select-none">
         <span className="text-terminal-green font-bold">user</span>

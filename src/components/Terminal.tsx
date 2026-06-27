@@ -18,11 +18,11 @@ export function Terminal() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-terminal-bg text-terminal-green font-mono text-sm overflow-hidden relative p-10">
-      <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)] p-5">
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+      <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)]">
+        <div className="flex-1 overflow-hidden min-h-0 p-4 pb-2">
           <TerminalOutput />
         </div>
-        <div className="shrink-0 w-full">
+        <div className="shrink-0 w-full p-4 pt-2">
           <TerminalInput />
         </div>
       </div>
