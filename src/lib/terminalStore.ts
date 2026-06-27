@@ -22,6 +22,9 @@ type TerminalState = {
   editorOpen: boolean
   editorFilePath: string | null
   editorContent: string | null
+  markdownOpen: boolean
+  markdownFilePath: string | null
+  markdownContent: string | null
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -33,6 +36,8 @@ type TerminalState = {
   openEditor: (filePath: string, content: string) => void
   closeEditor: () => void
   saveEditor: (content: string) => void
+  openMarkdown: (filePath: string, content: string) => void
+  closeMarkdown: () => void
 }
 
 let lineId = 0
@@ -48,6 +53,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   editorOpen: false,
   editorFilePath: null,
   editorContent: null,
+  markdownOpen: false,
+  markdownFilePath: null,
+  markdownContent: null,
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -129,6 +137,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         saveFileSystem: (fs) => saveFileSystem(fs),
         openEditor: (filePath, content) => get().openEditor(filePath, content),
         closeEditor: () => get().closeEditor(),
+        openMarkdown: (filePath, content) => get().openMarkdown(filePath, content),
+        closeMarkdown: () => get().closeMarkdown(),
       })
 
       if (outcome === 'handled') {
@@ -219,6 +229,23 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       editorContent: null,
     })
     get().addLine({ type: 'output', content: `Saved ${state.editorFilePath}` })
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
+  },
+
+  openMarkdown: (filePath: string, content: string) => {
+    set({
+      markdownOpen: true,
+      markdownFilePath: filePath,
+      markdownContent: content,
+    })
+  },
+
+  closeMarkdown: () => {
+    set({
+      markdownOpen: false,
+      markdownFilePath: null,
+      markdownContent: null,
+    })
     get().addLine({ type: 'prompt', content: get().getPrompt() })
   },
 }))
