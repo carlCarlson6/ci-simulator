@@ -103,25 +103,6 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       return
     }
 
-    if (command === 'reset') {
-      clearFileSystemStorage()
-      const fs = new FileSystem()
-      fs.initializeDefaults()
-      const startPath = fs.isDirectory('/home/user') ? '/home/user' : '/'
-      const currentTheme = get().currentTheme
-      set({
-        fileSystem: fs,
-        lines: [],
-        history: [],
-        currentPath: startPath,
-        previousPath: startPath,
-        currentTheme,
-      })
-      get().addLine({ type: 'output', content: 'Filesystem reset to defaults. Refresh to apply clean state.' })
-      get().addLine({ type: 'prompt', content: get().getPrompt() })
-      return
-    }
-
     if (command === 'cd' && result.success) {
       const newPath = result.data?.newPath || state.currentPath
       set({ currentPath: newPath, previousPath: state.currentPath })
