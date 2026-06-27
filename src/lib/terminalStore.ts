@@ -19,6 +19,9 @@ type TerminalState = {
   previousPath: string
   fileSystem: FileSystem
   currentTheme: string
+  editorOpen: boolean
+  editorFilePath: string | null
+  editorContent: string | null
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -27,6 +30,9 @@ type TerminalState = {
   getCompletionCandidates: (input: string) => string[]
   addLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => void
   setTheme: (name: string) => void
+  openEditor: (filePath: string, content: string) => void
+  closeEditor: () => void
+  saveEditor: (content: string) => void
 }
 
 let lineId = 0
@@ -39,6 +45,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   previousPath: '/home/user',
   fileSystem: new FileSystem(),
   currentTheme: 'cyberpunk',
+  editorOpen: false,
+  editorFilePath: null,
+  editorContent: null,
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -109,8 +118,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         setPaths: (current, previous) => set({ currentPath: current, previousPath: previous }),
         clearScreen: () => get().clearScreen(),
         saveFileSystem: (fs) => saveFileSystem(fs),
-        openEditor: (_filePath, _content) => {},
-        closeEditor: () => {},
+        openEditor: (filePath, content) => get().openEditor(filePath, content),
+        closeEditor: () => get().closeEditor(),
       })
 
       if (outcome === 'handled') {
@@ -170,5 +179,37 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (!theme) return
     set({ currentTheme: name })
     localStorage.setItem('ci-simulator:theme', name)
+  },
+
+  openEditor: (filePath: string, content: string) => {
+    set({
+      editorOpen: true,
+      editorFilePath: filePath,
+      editorContent: content,
+    })
+  },
+
+  closeEditor: () => {
+    set({
+      editorOpen: false,
+      editorFilePath: null,
+      editorContent: null,
+    })
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
+  },
+
+  saveEditor: (content: string) => {
+    const state = get()
+    if (state.editorFilePath) {
+      state.fileSystem.writeFile(state.editorFilePath, content)
+      saveFileSystem(state.fileSystem)
+    }
+    set({
+      editorOpen: false,
+      editorFilePath: null,
+      editorContent: null,
+    })
+    get().addLine({ type: 'output', content: `Saved ${state.editorFilePath}` })
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
   },
 }))
