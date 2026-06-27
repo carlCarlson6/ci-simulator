@@ -4,8 +4,8 @@ import { useTerminalStore } from '../lib/terminalStore'
 import { getTheme, getDefaultTheme } from '../lib/themes'
 import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
-import { EditorModal } from './EditorModal'
-import { MarkdownModal } from './MarkdownModal'
+import { EditorModal } from '~/lib/commands/edit'
+import { MarkdownModal } from '~/lib/commands/md'
 
 export function Terminal() {
   const initialize = useTerminalStore((state) => state.initialize)
