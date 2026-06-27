@@ -226,9 +226,37 @@ export class FileSystem {
       if (!this.entries.has(dir)) this.entries.set(dir, { type: 'directory' })
     }
 
+    const wwwrootDirs = [
+      '/home/user/wwwroot',
+      '/home/user/wwwroot/example',
+    ]
+    for (const dir of wwwrootDirs) {
+      if (!this.entries.has(dir)) this.entries.set(dir, { type: 'directory' })
+    }
+
     this.createFile('/home/user/welcome.txt', 'Welcome to the Terminal Simulator!\n\nType `help` to see available commands.\n')
     this.createFile('/home/user/projects/README.md', '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n')
     this.createFile('/WELCOME_OUTPUT', 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n')
+
+    this.createFile('/home/user/wwwroot/example/index.html',
+`<h1>Hello, World!</h1>
+<p>Welcome to my first page on the virtual terminal.</p>
+<p>This page is served from <code>~/wwwroot/example/</code>.</p>
+`)
+
+    this.createFile('/home/user/wwwroot/example/style.css',
+`body {
+  font-family: system-ui, -apple-system, sans-serif;
+  max-width: 640px;
+  margin: 4rem auto;
+  padding: 0 1rem;
+  background: #faf9f6;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+h1 { color: #2563eb; }
+code { background: #e8e8e8; padding: 0.15rem 0.4rem; border-radius: 4px; }
+`)
   }
 
   serialize(): [string, FileSystemEntry][] {
