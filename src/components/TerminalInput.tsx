@@ -99,6 +99,15 @@ export function TerminalInput() {
     }
   }, [])
 
+  // Re-focus input when window regains focus (e.g. switching back from another tab)
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      inputRef.current?.focus()
+    }
+    window.addEventListener('focus', handleWindowFocus)
+    return () => window.removeEventListener('focus', handleWindowFocus)
+  }, [])
+
   return (
     <div
       ref={terminalRef}
