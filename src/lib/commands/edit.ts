@@ -9,6 +9,11 @@ export const handler: CommandHandler = (args, context) => {
   }
 
   const resolved = context.fileSystem.resolvePath(args[0], context.currentPath)
+  const entry = context.fileSystem.getEntry(resolved)
+
+  if (entry?.type === 'directory') {
+    return { success: false, error: `edit: ${args[0]}: Is a directory` }
+  }
 
   let content = ''
   try {
