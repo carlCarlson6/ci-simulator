@@ -78,6 +78,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     const savedTheme = localStorage.getItem('ci-simulator:theme')
     const initialTheme = savedTheme && getTheme(savedTheme) ? savedTheme : 'cyberpunk'
 
+    let envVars: Record<string, string> = {}
+    try {
+      const saved = localStorage.getItem('ci-simulator:envVars')
+      if (saved) envVars = JSON.parse(saved)
+    } catch { /* ignore corrupt data */ }
+
     set({
       fileSystem: fileSystem,
       lines: [],
@@ -85,6 +91,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       currentPath: startPath,
       previousPath: startPath,
       currentTheme: initialTheme,
+      envVars,
     })
 
     try {
@@ -239,7 +246,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   },
 
   setEnvVar: (key: string, value: string) => {
-    set((state) => ({ envVars: { ...state.envVars, [key]: value } }))
+    set((state) => {
+      const envVars = { ...state.envVars, [key]: value }
+      localStorage.setItem('ci-simulator:envVars', JSON.stringify(envVars))
+      return { envVars }
+    })
   },
 
   openMarkdown: (filePath: string, content: string) => {
