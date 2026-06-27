@@ -13,6 +13,8 @@ import { HELP_TEXT as clearHelp } from './clear'
 import { HELP_TEXT as echoHelp } from './echo'
 import { HELP_TEXT as historyHelp } from './history'
 import { HELP_TEXT as cowsayHelp } from './cowsay'
+import { HELP_TEXT as themeHelp } from './theme'
+import { HELP_TEXT as resetHelp } from './reset'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -42,6 +44,8 @@ export const handler: CommandHandler = () => ({
       clearHelp,
       echoHelp,
       historyHelp,
+      themeHelp,
+      resetHelp,
       '  man <command>         Show manual page',
       '',
       'Fun Commands:',

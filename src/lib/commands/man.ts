@@ -13,6 +13,8 @@ import { MANUAL as mvManual } from './mv'
 import { MANUAL as curlManual } from './curl'
 import { MANUAL as cowsayManual } from './cowsay'
 import { MANUAL as historyManual } from './history'
+import { MANUAL as themeManual } from './theme'
+import { MANUAL as resetManual } from './reset'
 
 const manPages: Record<string, string> = {
   help: 'help\n\nShow available commands and brief descriptions.\n\nUsage: help',
@@ -31,6 +33,8 @@ const manPages: Record<string, string> = {
   man: 'man\n\nDisplay manual pages for commands.\n\nUsage: man <command>',
   cowsay: cowsayManual,
   history: historyManual,
+  theme: themeManual,
+  reset: resetManual,
 }
 
 export const MANUAL = 'man\n\nDisplay manual pages for commands.\n\nUsage: man <command>'
