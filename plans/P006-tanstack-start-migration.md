@@ -1,7 +1,5 @@
 # P006: TanStack Start Migration & `curl` Server Function
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Migrate the Vite SPA to TanStack Start (client-only SPA mode) and replace the Vite dev-server HTTP proxy middleware with a type-safe `createServerFn` so `curl` executes server-side without CORS issues.
 
 **Architecture:** We restructure to TanStack Start conventions: file-based routing, auto-generated route tree, SPA mode via the Vite plugin, and a `.functions.ts` / `.server.ts` pair for the HTTP proxy. The terminal remains client-only (no SSR), and only the `curl` command gets backend capability in this phase.

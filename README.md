@@ -5,7 +5,9 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Implementation Status:** All 9 phases of [P001-implementation.md](plans/P001-implementation.md) completed. Terminal is fully functional.  
 > **UX Improvements:** ✅ Complete — see [P002-terminal-ux-improvements.md](plans/P002-terminal-ux-improvements.md)  
 > **Quick-Win Commands:** ✅ Complete — 11 new commands implemented. See [P003-quick-win-commands.md](plans/P003-quick-win-commands.md).  
-> **TanStack Start Migration:** 🔄 In Progress — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
+> **Text Editor Modal:** 📝 Planned — see [P004-text-editor-modal.md](plans/P004-text-editor-modal.md)  
+> **Filesystem Persistence:** 📝 Planned — see [P005-filesystem-localstorage-persistence.md](plans/P005-filesystem-localstorage-persistence.md)  
+> **TanStack Start Migration:** 📝 Planned — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).
 
 ---
@@ -134,8 +136,10 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 9. Future Enhancements List | ✅ Complete | Documented in README below |
 | 10. Terminal UX Improvements | ✅ Complete | [P002](plans/P002-terminal-ux-improvements.md) — focus, padding, scroll, styling |
 | 11. Quick-Win Commands | ✅ Complete | [P003](plans/P003-quick-win-commands.md) — 11 new commands (cp, mv, ls -la, find, grep, ping, ps, top, curl, sudo, man, cowsay) |
-| 12. TanStack Start Migration | 🔄 In Progress | [P006](plans/P006-tanstack-start-migration.md) — migrate to TanStack Start SPA mode, replace Vite middleware with `createServerFn` |
-| 13. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
+| 12. Text Editor Modal | 📝 Planned | [P004](plans/P004-text-editor-modal.md) — in-terminal modal editor via `edit <file>` command |
+| 13. Filesystem Persistence | 📝 Planned | [P005](plans/P005-filesystem-localstorage-persistence.md) — persist filesystem to `localStorage` with `reset` command |
+| 14. TanStack Start Migration | 📝 Planned | [P006](plans/P006-tanstack-start-migration.md) — migrate to TanStack Start SPA mode, replace Vite middleware with `createServerFn` |
+| 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 
 ---
 

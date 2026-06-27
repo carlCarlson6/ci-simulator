@@ -1,7 +1,5 @@
 # Filesystem Persistence via localStorage — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Persist the in-memory filesystem to `localStorage` so user-created files, directories, and edits survive browser refreshes.
 
 **Architecture:** Add a thin persistence layer that serializes the `FileSystem.entries` Map to JSON on every mutating command, and hydrates from `localStorage` on store initialization. A `reset` command clears storage and restores defaults. The `FileSystem` class itself gains `serialize()`/`deserialize()`/`clear()` methods so the persistence module has zero knowledge of internal Map structure.
