@@ -91,6 +91,84 @@ export class FileSystem {
     }
   }
 
+  copyEntry(src: string, dest: string, recursive: boolean = false): void {
+    const srcNorm = this.resolvePath(src)
+    const destNorm = this.resolvePath(dest)
+    const entry = this.getEntry(srcNorm)
+
+    if (!entry) {
+      throw new Error(`cp: cannot stat '${src}': No such file or directory`)
+    }
+
+    if (this.exists(destNorm)) {
+      throw new Error(`cp: cannot copy '${src}' to '${dest}': File exists`)
+    }
+
+    if (entry.type === 'directory' && !recursive) {
+      throw new Error(`cp: -r not specified; omitting directory '${src}'`)
+    }
+
+    if (entry.type === 'directory' && recursive) {
+      this.createDirectory(destNorm)
+      for (const [key, val] of this.entries) {
+        if (key === srcNorm || key.startsWith(srcNorm + '/')) {
+          const relative = key.slice(srcNorm.length)
+          const newKey = destNorm + relative
+          this.entries.set(newKey, {
+            type: val.type,
+            content: val.content,
+          })
+        }
+      }
+    } else {
+      this.createFile(destNorm, entry.content || '')
+    }
+  }
+
+  moveEntry(src: string, dest: string): void {
+    const srcNorm = this.resolvePath(src)
+    const destNorm = this.resolvePath(dest)
+    const entry = this.getEntry(srcNorm)
+
+    if (!entry) {
+      throw new Error(`mv: cannot stat '${src}': No such file or directory`)
+    }
+
+    if (this.exists(destNorm)) {
+      throw new Error(`mv: cannot move '${src}' to '${dest}': File exists`)
+    }
+
+    const destParent = this.getParent(destNorm)
+    if (!this.exists(destParent)) {
+      throw new Error(`mv: cannot move '${src}' to '${dest}': No such file or directory`)
+    }
+
+    if (entry.type === 'directory') {
+      const entriesToMove: [string, FileSystemEntry][] = []
+      for (const [key, val] of this.entries) {
+        if (key === srcNorm || key.startsWith(srcNorm + '/')) {
+          const relative = key.slice(srcNorm.length)
+          const newKey = destNorm + relative
+          entriesToMove.push([newKey, { ...val }])
+        }
+      }
+      for (const [key] of this.entries) {
+        if (key === srcNorm || key.startsWith(srcNorm + '/')) {
+          this.entries.delete(key)
+        }
+      }
+      for (const [key, val] of entriesToMove) {
+        this.entries.set(key, val)
+      }
+    } else {
+      this.entries.delete(srcNorm)
+      this.entries.set(destNorm, {
+        type: 'file',
+        content: entry.content,
+      })
+    }
+  }
+
   listDirectory(path: string): string[] {
     const normalized = this.resolvePath(path)
     const entry = this.getEntry(normalized)

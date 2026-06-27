@@ -89,6 +89,55 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       set({ currentPath: newPath, previousPath: state.currentPath })
     }
 
+    // Handle curl asynchronously
+    if (command === 'curl' && result.success && result.data?.curlUrl) {
+      fetch('/api/proxy-http', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: result.data.curlUrl,
+          method: result.data.curlMethod || 'GET',
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            get().addLine({ type: 'error', content: `curl: ${data.error}` })
+            return
+          }
+
+          const lines: string[] = []
+          lines.push(`HTTP/${data.status} ${data.statusText || 'OK'}`)
+
+          if (data.headers) {
+            for (const [key, value] of Object.entries(data.headers)) {
+              if (value) lines.push(`${key}: ${value}`)
+            }
+          }
+
+          lines.push('')
+
+          if (data.body) {
+            const bodyLines = String(data.body).split('\n')
+            const maxLines = 100
+            for (let i = 0; i < Math.min(bodyLines.length, maxLines); i++) {
+              lines.push(bodyLines[i])
+            }
+            if (bodyLines.length > maxLines) {
+              lines.push(`... (${bodyLines.length - maxLines} more lines)`)
+            }
+          }
+
+          for (const line of lines) {
+            get().addLine({ type: 'output', content: line })
+          }
+        })
+        .catch((err) => {
+          get().addLine({ type: 'error', content: `curl: ${err.message}` })
+        })
+      return
+    }
+
     // Add output
     if (result.success) {
       if (result.data?.output) {
