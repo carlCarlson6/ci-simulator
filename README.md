@@ -5,7 +5,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Implementation Status:** All 9 phases of [P001-implementation.md](plans/P001-implementation.md) completed. Terminal is fully functional.  
 > **UX Improvements:** ✅ Complete — see [P002-terminal-ux-improvements.md](plans/P002-terminal-ux-improvements.md)  
 > **Quick-Win Commands:** ✅ Complete — 11 new commands implemented. See [P003-quick-win-commands.md](plans/P003-quick-win-commands.md).  
-> **Text Editor Modal:** 📝 Planned — see [P004-text-editor-modal.md](plans/P004-text-editor-modal.md)  
+> **Text Editor Modal:** ✅ Complete — see [P004-text-editor-modal.md](plans/P004-text-editor-modal.md)  
 > **Filesystem Persistence:** ✅ Complete — see [P005-filesystem-localstorage-persistence.md](plans/P005-filesystem-localstorage-persistence.md)  
 > **TanStack Start Migration:** ✅ Complete — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
@@ -20,7 +20,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 **Core Features:**
 - Full-screen terminal UI with neon green-on-black color scheme
 - In-memory file system (flat Map structure) with pre-populated directories and files
-- 21 implemented commands with color-coded output
+- 22 implemented commands with color-coded output
 - Command history (up/down arrows) — session-only, not persisted
 - Tab completion for commands and file paths
 - Type-safe server functions for HTTP proxy (`curl` via `createServerFn`)
@@ -64,7 +64,8 @@ src/
 ├── components/
 │   ├── Terminal.tsx        # Main terminal container
 │   ├── TerminalInput.tsx   # Input bar at bottom
-│   └── TerminalOutput.tsx  # Scrollable output area
+│   ├── TerminalOutput.tsx  # Scrollable output area
+│   └── EditorModal.tsx     # Text editor modal overlay
 ├── lib/
 │   ├── auth.ts             # Centralized Clerk authentication logic
 │   ├── commands/           # Command handlers (per-command files)
@@ -112,6 +113,7 @@ vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 | `man` | Simulated | Manual pages for commands |
 | `cowsay` | Simulated | ASCII cow with speech bubble |
 | `history` | Simulated | Show command history |
+| `edit` | Simulated | Open file in text editor modal |
 | `theme` | Simulated | Switch color theme |
 | `reset` | Simulated | Reset filesystem to defaults (clears storage) |
 | `login` | **Auth** | Open Clerk authentication modal |
@@ -139,7 +141,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 9. Future Enhancements List | ✅ Complete | Documented in README below |
 | 10. Terminal UX Improvements | ✅ Complete | [P002](plans/P002-terminal-ux-improvements.md) — focus, padding, scroll, styling |
 | 11. Quick-Win Commands | ✅ Complete | [P003](plans/P003-quick-win-commands.md) — 11 new commands (cp, mv, ls -la, find, grep, ping, ps, top, curl, sudo, man, cowsay) |
-| 12. Text Editor Modal | 📝 Planned | [P004](plans/P004-text-editor-modal.md) — in-terminal modal editor via `edit <file>` command |
+| 12. Text Editor Modal | ✅ Complete | [P004](plans/P004-text-editor-modal.md) — in-terminal modal editor via `edit <file>` command |
 | 13. Filesystem Persistence | ✅ Complete | [P005](plans/P005-filesystem-localstorage-persistence.md) — persist filesystem to `localStorage` with `reset` command |
 | 14. TanStack Start Migration | ✅ Complete | [P006](plans/P006-tanstack-start-migration.md) — migrated to TanStack Start SPA mode, replaced Vite middleware with `createServerFn` |
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
@@ -185,6 +187,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 - [x] **`sudo` easter egg** — "You are not in the sudoers file. This incident will be reported."
 - [x] **File persistence (`localStorage`)** — Filesystem state survives browser refreshes; `reset` command clears storage
 - [x] **`theme` command** — 5 static color palettes (cyberpunk, amber, phosphor, commodore, solarized), persisted in `localStorage`
+- [x] **Text Editor Modal (`edit` command)** — Theme-aware modal editor with Ctrl+S save and Escape quit
 
 ## 📝 Future TODO
 

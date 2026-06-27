@@ -1,6 +1,8 @@
-# Implementation Plan: Text Editor Modal (P004) — Revised
+# Implementation Plan: Text Editor Modal (P004) — Revised ✅ COMPLETE
 
 **Goal:** Add a cyberpunk-styled modal text editor that opens via the `edit <file>` command, allowing users to edit any file in the in-memory file system.
+
+**Status:** All 7 tasks completed. See commit history for implementation details.
 
 **Architecture:** The `edit` command is a first-class modular command (like `cd`, `clear`) with its own handler in `src/lib/commands/edit.ts` and a `CommandEffect` that opens the editor modal via the Zustand store. The modal is a theme-aware React overlay with a textarea, file path header, and shortcut footer. File writes go through a new `writeFile` method on `FileSystem`. Keyboard shortcuts (Ctrl+S, Escape) are handled within the modal.
 
@@ -31,7 +33,7 @@
 - Consumes: Existing `FileSystem` class structure
 - Produces: `writeFile(path: string, content: string): void` method
 
-- [ ] **Step 1: Add `writeFile` method**
+- [x] **Step 1: Add `writeFile` method**
 
 In `src/lib/fileSystem.ts`, after the `readFile` method, add:
 
@@ -48,7 +50,7 @@ In `src/lib/fileSystem.ts`, after the `readFile` method, add:
   }
 ```
 
-- [ ] **Step 2: Verify no syntax errors**
+- [x] **Step 2: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -65,7 +67,7 @@ Expected: No errors
 - Consumes: Existing types
 - Produces: Updated `CommandResult` with editor fields; updated `CommandEffectContext` with editor actions
 
-- [ ] **Step 1: Extend `CommandResult` data**
+- [x] **Step 1: Extend `CommandResult` data**
 
 In `src/lib/commands/types.ts`, add to `CommandResult.data`:
 
@@ -74,7 +76,7 @@ In `src/lib/commands/types.ts`, add to `CommandResult.data`:
     editorContent?: string
 ```
 
-- [ ] **Step 2: Extend `CommandEffectContext`**
+- [x] **Step 2: Extend `CommandEffectContext`**
 
 In `src/lib/commands/types.ts`, add to `CommandEffectContext`:
 
@@ -83,7 +85,7 @@ In `src/lib/commands/types.ts`, add to `CommandEffectContext`:
   closeEditor: () => void
 ```
 
-- [ ] **Step 3: Verify no syntax errors**
+- [x] **Step 3: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -102,7 +104,7 @@ Expected: No errors
 - Consumes: `FileSystem.readFile()`, `FileSystem.writeFile()` (Task 1), `CommandEffectContext` (Task 2)
 - Produces: `edit` handler + effect, registered in index, listed in help
 
-- [ ] **Step 1: Create `src/lib/commands/edit.ts`**
+- [x] **Step 1: Create `src/lib/commands/edit.ts`**
 
 ```typescript
 import { CommandHandler, CommandEffect } from './types'
@@ -145,7 +147,7 @@ export const effect: CommandEffect = (result, context) => {
 }
 ```
 
-- [ ] **Step 2: Register in `src/lib/commands/index.ts`**
+- [x] **Step 2: Register in `src/lib/commands/index.ts`**
 
 Add import:
 ```typescript
@@ -162,7 +164,7 @@ Add to `commandEffects` record:
   edit: editEffect,
 ```
 
-- [ ] **Step 3: Update `src/lib/commands/help.ts`**
+- [x] **Step 3: Update `src/lib/commands/help.ts`**
 
 Add import:
 ```typescript
@@ -176,7 +178,7 @@ Add to the output array inside `handler` (after `touchHelp` and before `rmHelp`)
       rmHelp,
 ```
 
-- [ ] **Step 4: Verify no syntax errors**
+- [x] **Step 4: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -193,7 +195,7 @@ Expected: No errors
 - Consumes: `CommandEffectContext.openEditor/closeEditor` (Task 2), `FileSystem.writeFile` (Task 1)
 - Produces: `editorOpen`, `editorFilePath`, `editorContent`, `openEditor()`, `closeEditor()`, `saveEditor()` store actions
 
-- [ ] **Step 1: Add editor state to `TerminalState` type**
+- [x] **Step 1: Add editor state to `TerminalState` type**
 
 In `src/lib/terminalStore.ts`, add to `TerminalState`:
 
@@ -206,7 +208,7 @@ In `src/lib/terminalStore.ts`, add to `TerminalState`:
   saveEditor: (content: string) => void
 ```
 
-- [ ] **Step 2: Add initial state**
+- [x] **Step 2: Add initial state**
 
 In the `create<TerminalState>` call, add:
 
@@ -216,7 +218,7 @@ In the `create<TerminalState>` call, add:
   editorContent: null,
 ```
 
-- [ ] **Step 3: Update `executeCommand` to wire `CommandEffectContext`**
+- [x] **Step 3: Update `executeCommand` to wire `CommandEffectContext`**
 
 In `executeCommand`, within the `effect` call block, extend the context object:
 
@@ -234,7 +236,7 @@ In `executeCommand`, within the `effect` call block, extend the context object:
       })
 ```
 
-- [ ] **Step 4: Add editor actions to the store**
+- [x] **Step 4: Add editor actions to the store**
 
 Add these actions inside the `create<TerminalState>` object:
 
@@ -272,7 +274,7 @@ Add these actions inside the `create<TerminalState>` object:
   },
 ```
 
-- [ ] **Step 5: Verify no syntax errors**
+- [x] **Step 5: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -289,7 +291,7 @@ Expected: No errors
 - Consumes: `editorFilePath`, `editorContent`, `saveEditor(content)`, `closeEditor()` from store (Task 4)
 - Produces: `EditorModal` React component (theme-aware)
 
-- [ ] **Step 1: Create the component**
+- [x] **Step 1: Create the component**
 
 Create `src/components/EditorModal.tsx` with this content:
 
@@ -389,7 +391,7 @@ export function EditorModal() {
 }
 ```
 
-- [ ] **Step 2: Verify no syntax errors**
+- [x] **Step 2: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -406,7 +408,7 @@ Expected: No errors
 - Consumes: `EditorModal` component (Task 5)
 - Produces: Updated `Terminal` component
 
-- [ ] **Step 1: Import and render `EditorModal`**
+- [x] **Step 1: Import and render `EditorModal`**
 
 In `src/components/Terminal.tsx`:
 
@@ -421,7 +423,7 @@ Add inside the return JSX, just before the scanlines overlay:
       {/* Scanlines overlay */}
 ```
 
-- [ ] **Step 2: Verify no syntax errors**
+- [x] **Step 2: Verify no syntax errors**
 
 Run: `npx tsc --noEmit`
 Expected: No errors
@@ -433,12 +435,12 @@ Expected: No errors
 **Files:** None
 **Test:** Manual browser testing
 
-- [ ] **Step 1: Start dev server**
+- [x] **Step 1: Start dev server**
 
 Run: `npm run dev`
 Expected: Server starts at `http://localhost:3000`
 
-- [ ] **Step 2: Test `edit` on existing file**
+- [x] **Step 2: Test `edit` on existing file**
 
 In the terminal, type:
 ```
@@ -446,7 +448,7 @@ edit /home/user/welcome.txt
 ```
 Expected: Modal opens with content `Welcome to the Terminal Simulator!...`
 
-- [ ] **Step 3: Test editing and saving**
+- [x] **Step 3: Test editing and saving**
 
 Add some text, press `Ctrl+S`.
 Expected: Modal closes, terminal shows `Saved /home/user/welcome.txt`, prompt returns.
@@ -458,7 +460,7 @@ Expected: Shows the updated content.
 Refresh page.
 Expected: Updated content is still there (persisted to localStorage).
 
-- [ ] **Step 4: Test quit without saving**
+- [x] **Step 4: Test quit without saving**
 
 Type:
 ```
@@ -467,7 +469,7 @@ edit /home/user/welcome.txt
 Make changes, press `Escape`.
 Expected: Modal closes, prompt returns. `cat` shows original content (no save).
 
-- [ ] **Step 5: Test auto-create on new file**
+- [x] **Step 5: Test auto-create on new file**
 
 Type:
 ```
@@ -481,7 +483,7 @@ cat /home/user/newfile.txt
 ```
 Expected: Shows the new content.
 
-- [ ] **Step 6: Test error case**
+- [x] **Step 6: Test error case**
 
 Type:
 ```
@@ -495,7 +497,7 @@ edit
 ```
 Expected: Red error: `edit: missing file operand`
 
-- [ ] **Step 7: Test `help` includes `edit`**
+- [x] **Step 7: Test `help` includes `edit`**
 
 Type:
 ```
@@ -503,7 +505,7 @@ help
 ```
 Expected: `edit <file>` appears in the command list under File System Commands.
 
-- [ ] **Step 8: Test theme switching**
+- [x] **Step 8: Test theme switching**
 
 Type:
 ```
