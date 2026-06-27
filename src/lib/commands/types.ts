@@ -22,6 +22,7 @@ export type CommandResult = {
     editorContent?: string
     markdownFilePath?: string
     markdownContent?: string
+    exportVars?: Record<string, string>
   }
 }
 
