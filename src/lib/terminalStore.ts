@@ -126,7 +126,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (trimmed === '') {
       get().addLine({ type: 'prompt', content: get().getPrompt() })
       saveFileSystem(state.fileSystem)
-      if (get().user) syncStateToServer()
+      if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
       return
     }
 
@@ -160,7 +160,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
           setPaths: (current, previous) => {
             set({ currentPath: current, previousPath: previous })
             localStorage.setItem('ci-simulator:currentPath', current)
-            if (get().user) syncStateToServer()
+            if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
           },
           clearScreen: () => get().clearScreen(),
           saveFileSystem: (fs) => saveFileSystem(fs),
@@ -174,7 +174,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
       if (outcome === 'handled') {
         saveFileSystem(get().fileSystem)
-        if (get().user) syncStateToServer()
+        if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
         return
       }
     }
@@ -192,7 +192,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     // Auto-save filesystem state after every command
     saveFileSystem(get().fileSystem)
-    if (get().user) syncStateToServer()
+    if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
   },
 
   clearScreen: () => {
@@ -233,7 +233,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (!theme) return
     set({ currentTheme: name })
     localStorage.setItem('ci-simulator:theme', name)
-    if (get().user) syncStateToServer()
+    if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
   },
 
   openEditor: (filePath: string, content: string) => {
@@ -258,7 +258,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (state.editorFilePath) {
       state.fileSystem.writeFile(state.editorFilePath, content)
       saveFileSystem(state.fileSystem)
-      if (get().user) syncStateToServer()
+      if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
     }
     set({
       editorOpen: false,
@@ -275,7 +275,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       localStorage.setItem('ci-simulator:envVars', JSON.stringify(envVars))
       return { envVars }
     })
-    if (get().user) syncStateToServer()
+    if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
   },
 
   setUser: (user: string | null) => {

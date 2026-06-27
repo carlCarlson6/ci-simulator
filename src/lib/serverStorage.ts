@@ -1,12 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
+import { eq } from 'drizzle-orm'
+import { userState } from './db/schema'
+import type { ServerStatePayload } from './db/schema'
 
-export type ServerStatePayload = {
-  v: 1
-  fileSystem: [string, { type: 'file' | 'directory'; content?: string }][]
-  currentPath: string
-  theme: string
-  envVars: Record<string, string>
-}
+export type { ServerStatePayload }
+
+type Db = import('drizzle-orm/postgres-js').PostgresJsDatabase<{ userState: typeof userState }>
 
 function parseCookies(cookieHeader: string): Record<string, string> {
   const cookies: Record<string, string> = {}
@@ -36,13 +35,18 @@ async function getUserId(request: Request): Promise<string | null> {
   }
 }
 
-async function withRedis<T>(fn: (redis: import('ioredis').Redis) => Promise<T>): Promise<T> {
-  const { Redis } = await import('ioredis')
-  const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379')
+async function withDb<T>(fn: (db: Db) => Promise<T>): Promise<T> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL not configured')
+  }
+  const postgres = await import('postgres')
+  const { drizzle } = await import('drizzle-orm/postgres-js')
+  const client = postgres.default(process.env.DATABASE_URL)
+  const db = drizzle(client, { schema: { userState } })
   try {
-    return await fn(redis)
+    return await fn(db)
   } finally {
-    await redis.quit()
+    await client.end()
   }
 }
 
@@ -54,9 +58,15 @@ export const saveServerStateFn = createServerFn({ method: 'POST' })
     const userId = await getUserId(ctx.request)
     if (!userId) return { ok: false }
 
-    await withRedis(async (redis) => {
-      const key = `ci-simulator:state:${userId}`
-      await redis.set(key, JSON.stringify(ctx.data), 'EX', 60 * 60 * 24 * 30)
+    await withDb(async (db) => {
+      await db.insert(userState).values({
+        userId,
+        data: ctx.data,
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: userState.userId,
+        set: { data: ctx.data, updatedAt: new Date() },
+      })
     })
 
     return { ok: true }
@@ -67,16 +77,15 @@ export const loadServerStateFn = createServerFn({ method: 'GET' })
     const userId = await getUserId(ctx.request)
     if (!userId) return null
 
-    const raw = await withRedis(async (redis) => {
-      const key = `ci-simulator:state:${userId}`
-      return await redis.get(key)
+    const rows = await withDb(async (db) => {
+      return await db.select().from(userState).where(eq(userState.userId, userId))
     })
 
-    if (!raw) return null
-    return JSON.parse(raw) as ServerStatePayload
+    if (rows.length === 0) return null
+    return rows[0].data
   })
 
-export function syncStateToServer(): void {
+export async function syncStateToServer(): Promise<void> {
   const fileSystemRaw = localStorage.getItem('ci-simulator:filesystem')
   const currentPath = localStorage.getItem('ci-simulator:currentPath')
   const theme = localStorage.getItem('ci-simulator:theme')
@@ -93,8 +102,7 @@ export function syncStateToServer(): void {
   let envVars: Record<string, string> = {}
   try { envVars = JSON.parse(envVarsRaw || '{}') } catch { /* ignore */ }
 
-  saveServerStateFn({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
-    .catch(() => { /* silent fail */ })
+  await saveServerStateFn({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
 }
 
 function isValidPayload(data: unknown): data is ServerStatePayload {
