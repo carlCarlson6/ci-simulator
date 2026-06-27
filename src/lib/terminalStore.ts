@@ -25,6 +25,7 @@ type TerminalState = {
   markdownOpen: boolean
   markdownFilePath: string | null
   markdownContent: string | null
+  envVars: Record<string, string>
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -38,6 +39,7 @@ type TerminalState = {
   saveEditor: (content: string) => void
   openMarkdown: (filePath: string, content: string) => void
   closeMarkdown: () => void
+  setEnvVar: (key: string, value: string) => void
 }
 
 let lineId = 0
@@ -56,6 +58,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   markdownOpen: false,
   markdownFilePath: null,
   markdownContent: null,
+  envVars: {},
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -115,31 +118,34 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       history: state.history,
       currentTheme: state.currentTheme,
       setTheme: get().setTheme,
+      envVars: state.envVars,
     })
 
     // Record command in history AFTER execution
     set({ history: [...state.history, trimmed] })
 
     const command = trimmed.split(/\s+/)[0]
-    const effect = getCommandEffect(command)
+      const effect = getCommandEffect(command)
 
-    if (effect) {
-      const outcome = effect(result, {
-        fileSystem: state.fileSystem,
-        currentPath: state.currentPath,
-        previousPath: state.previousPath,
-        addLine: (type, content) => get().addLine({ type, content }),
-        setPaths: (current, previous) => {
-          set({ currentPath: current, previousPath: previous })
-          localStorage.setItem('ci-simulator:currentPath', current)
-        },
-        clearScreen: () => get().clearScreen(),
-        saveFileSystem: (fs) => saveFileSystem(fs),
-        openEditor: (filePath, content) => get().openEditor(filePath, content),
-        closeEditor: () => get().closeEditor(),
-        openMarkdown: (filePath, content) => get().openMarkdown(filePath, content),
-        closeMarkdown: () => get().closeMarkdown(),
-      })
+      if (effect) {
+        const outcome = effect(result, {
+          fileSystem: state.fileSystem,
+          currentPath: state.currentPath,
+          previousPath: state.previousPath,
+          addLine: (type, content) => get().addLine({ type, content }),
+          setPaths: (current, previous) => {
+            set({ currentPath: current, previousPath: previous })
+            localStorage.setItem('ci-simulator:currentPath', current)
+          },
+          clearScreen: () => get().clearScreen(),
+          saveFileSystem: (fs) => saveFileSystem(fs),
+          openEditor: (filePath, content) => get().openEditor(filePath, content),
+          closeEditor: () => get().closeEditor(),
+          openMarkdown: (filePath, content) => get().openMarkdown(filePath, content),
+          closeMarkdown: () => get().closeMarkdown(),
+          envVars: state.envVars,
+          setEnvVar: (key, value) => get().setEnvVar(key, value),
+        })
 
       if (outcome === 'handled') {
         saveFileSystem(get().fileSystem)
@@ -230,6 +236,10 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     })
     get().addLine({ type: 'output', content: `Saved ${state.editorFilePath}` })
     get().addLine({ type: 'prompt', content: get().getPrompt() })
+  },
+
+  setEnvVar: (key: string, value: string) => {
+    set((state) => ({ envVars: { ...state.envVars, [key]: value } }))
   },
 
   openMarkdown: (filePath: string, content: string) => {
