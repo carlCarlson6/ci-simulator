@@ -5,6 +5,8 @@ import { executeCommand, getCompletionCandidates, getCommandEffect } from './com
 import { saveFileSystem, loadFileSystem, clearFileSystemStorage } from './persistence'
 import { getTheme } from './themes'
 import { getPromptPrefix } from './auth'
+import type { ServerStatePayload } from './serverStorage'
+import { syncStateToServer } from './serverStorage'
 
 export type TerminalLine = {
   id: string
@@ -50,6 +52,7 @@ type TerminalState = {
   setEnvVar: (key: string, value: string) => void
   setUser: (user: string | null) => void
   setAuthCallbacks: (callbacks: AuthCallbacks) => void
+  restoreServerState: (data: ServerStatePayload) => void
 }
 
 let lineId = 0
@@ -123,6 +126,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (trimmed === '') {
       get().addLine({ type: 'prompt', content: get().getPrompt() })
       saveFileSystem(state.fileSystem)
+      if (get().user) syncStateToServer()
       return
     }
 
@@ -156,6 +160,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
           setPaths: (current, previous) => {
             set({ currentPath: current, previousPath: previous })
             localStorage.setItem('ci-simulator:currentPath', current)
+            if (get().user) syncStateToServer()
           },
           clearScreen: () => get().clearScreen(),
           saveFileSystem: (fs) => saveFileSystem(fs),
@@ -169,6 +174,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
       if (outcome === 'handled') {
         saveFileSystem(get().fileSystem)
+        if (get().user) syncStateToServer()
         return
       }
     }
@@ -186,6 +192,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     // Auto-save filesystem state after every command
     saveFileSystem(get().fileSystem)
+    if (get().user) syncStateToServer()
   },
 
   clearScreen: () => {
@@ -226,6 +233,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (!theme) return
     set({ currentTheme: name })
     localStorage.setItem('ci-simulator:theme', name)
+    if (get().user) syncStateToServer()
   },
 
   openEditor: (filePath: string, content: string) => {
@@ -250,6 +258,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (state.editorFilePath) {
       state.fileSystem.writeFile(state.editorFilePath, content)
       saveFileSystem(state.fileSystem)
+      if (get().user) syncStateToServer()
     }
     set({
       editorOpen: false,
@@ -266,6 +275,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       localStorage.setItem('ci-simulator:envVars', JSON.stringify(envVars))
       return { envVars }
     })
+    if (get().user) syncStateToServer()
   },
 
   setUser: (user: string | null) => {
@@ -274,6 +284,28 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   setAuthCallbacks: (callbacks: AuthCallbacks) => {
     set({ authCallbacks: callbacks })
+  },
+
+  restoreServerState: (data: ServerStatePayload) => {
+    const fileSystem = createFileSystemFromSerialized(data.fileSystem)
+
+    localStorage.setItem('ci-simulator:filesystem', JSON.stringify({
+      version: 1,
+      entries: data.fileSystem,
+    }))
+    localStorage.setItem('ci-simulator:currentPath', data.currentPath)
+    localStorage.setItem('ci-simulator:theme', data.theme)
+    localStorage.setItem('ci-simulator:envVars', JSON.stringify(data.envVars))
+
+    set({
+      fileSystem,
+      currentPath: data.currentPath,
+      previousPath: data.currentPath,
+      currentTheme: data.theme,
+      envVars: data.envVars,
+    })
+
+    get().addLine({ type: 'system', content: 'State restored from server.' })
   },
 
   openMarkdown: (filePath: string, content: string) => {

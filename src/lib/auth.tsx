@@ -2,6 +2,7 @@
 import { useClerk, useUser } from '@clerk/clerk-react'
 import { useEffect } from 'react'
 import { useTerminalStore } from './terminalStore'
+import { loadStateFromServer } from './serverStorage'
 
 const MAX_USERNAME_LENGTH = 12
 
@@ -24,7 +25,13 @@ export function useAuthSync() {
 
   useEffect(() => {
     if (isSignedIn && user) {
-      setUser(user.username || user.firstName || user.emailAddresses[0]?.emailAddress || 'user')
+      const username = user.username || user.firstName || user.emailAddresses[0]?.emailAddress || 'user'
+      setUser(username)
+      loadStateFromServer().then((data) => {
+        if (data) {
+          useTerminalStore.getState().restoreServerState(data)
+        }
+      })
     } else {
       setUser(null)
     }
