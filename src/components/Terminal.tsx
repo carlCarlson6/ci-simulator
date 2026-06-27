@@ -17,7 +17,7 @@ export function Terminal() {
   }, [initialize])
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-terminal-bg text-terminal-green font-mono text-sm overflow-hidden relative p-10">
+    <div className="flex flex-col h-screen w-screen bg-terminal-bg text-terminal-green font-mono text-sm overflow-hidden relative p-4 md:p-8 lg:p-10">
       <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)]">
         <div className="flex-1 overflow-hidden min-h-0 p-4 pb-2">
           <TerminalOutput />
