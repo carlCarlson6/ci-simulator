@@ -43,12 +43,14 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       fs.initializeDefaults()
     }
 
+    const startPath = fs.isDirectory('/home/user') ? '/home/user' : '/'
+
     set({
       fileSystem: fs,
       lines: [],
       history: [],
-      currentPath: '/home/user',
-      previousPath: '/home/user',
+      currentPath: startPath,
+      previousPath: startPath,
     })
 
     const motd = fs.readFile('/etc/motd')
