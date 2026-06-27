@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-terminal-bg: #000000;
+  --color-terminal-green: #00ff00;
+  --color-terminal-green-dim: #00cc00;
+  --color-terminal-green-dark: #00aa00;
+  --color-terminal-red: #ff0044;
+  --color-terminal-blue: #0099ff;
+  --color-terminal-yellow: #ffcc00;
+  --color-terminal-cyan: #00ffff;
+  --color-terminal-magenta: #ff00ff;
+}
+
+body {
+  background-color: #000000;
+  color: #00ff00;
+  font-family: 'JetBrains Mono', monospace;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+    opacity: 0.99;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.3);
+  }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+    opacity: 0.94;
+    text-shadow: 0 0 2px rgba(0, 255, 0, 0.3), 0 0 5px rgba(0, 255, 0, 0.1);
+  }
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 10px;
+  height: 1.2em;
+  background-color: #00ff00;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+.terminal-glow {
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5), 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.terminal-glow-red {
+  text-shadow: 0 0 5px rgba(255, 0, 68, 0.5), 0 0 10px rgba(255, 0, 68, 0.3);
+}
+
+.terminal-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+.terminal-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-thumb {
+  background: #00ff00;
+  border-radius: 4px;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #00cc00;
+}
