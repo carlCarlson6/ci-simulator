@@ -4,6 +4,7 @@ import { useTerminalStore } from '../lib/terminalStore'
 import { getTheme, getDefaultTheme } from '../lib/themes'
 import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
+import { EditorModal } from './EditorModal'
 
 export function Terminal() {
   const initialize = useTerminalStore((state) => state.initialize)
@@ -43,6 +44,7 @@ export function Terminal() {
           <TerminalInput />
         </div>
       </div>
+      <EditorModal />
       {/* Scanlines overlay */}
       <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-30" />
       {/* Subtle vignette */}
