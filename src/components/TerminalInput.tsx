@@ -78,7 +78,13 @@ export function TerminalInput() {
           if (parts.length <= 1) {
             setInput(completion + ' ')
           } else {
-            parts[parts.length - 1] = completion
+            const last = parts[parts.length - 1]
+            const lastSlash = last.lastIndexOf('/')
+            if (lastSlash !== -1) {
+              parts[parts.length - 1] = last.slice(0, lastSlash + 1) + completion
+            } else {
+              parts[parts.length - 1] = completion
+            }
             setInput(parts.join(' '))
           }
         }
