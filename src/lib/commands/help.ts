@@ -60,6 +60,11 @@ export const handler: CommandHandler = () => ({
       '',
       'Fun Commands:',
       cowsayHelp,
+      '',
+      'Web Pages (wwwroot):',
+      '  Create static pages under ~/wwwroot/<name>/ with index.html',
+      '  and optional style.css, then visit /<name> in the browser.',
+      '  Example: mkdir ~/wwwroot/mypage, then edit the files.',
     ].join('\n'),
   },
 })
