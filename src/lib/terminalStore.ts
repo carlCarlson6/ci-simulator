@@ -92,8 +92,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       get().addLine({ type: 'system', content: motd })
     }
 
-    // Add initial prompt
-    get().addLine({ type: 'prompt', content: get().getPrompt() })
+    // Initial prompt is shown live in TerminalInput; no trailing prompt needed in output
   },
 
   executeCommand: (input: string) => {
@@ -110,18 +109,19 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     const promptLine = get().getPrompt() + ' ' + trimmed
     get().addLine({ type: 'prompt', content: promptLine })
 
-    // Add to history
-    const newHistory = [...state.history, trimmed]
-    set({ history: newHistory, historyIndex: -1 })
-
-    // Execute
+    // Execute with PREVIOUS history (current command is NOT yet recorded —
+    // this matches bash behaviour where `history` does not list itself)
     const results = executeCommand(trimmed, {
       fileSystem: state.fileSystem,
       currentPath: state.currentPath,
       previousPath: state.previousPath,
-      history: newHistory,
+      history: state.history,
       serverInfo: state.serverInfo,
     })
+
+    // Record command in history AFTER execution completes
+    const newHistory = [...state.history, trimmed]
+    set({ history: newHistory, historyIndex: -1 })
 
     // Handle special commands
     const parts = trimmed.split(/\s+/)
@@ -150,8 +150,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       get().addLine({ type: 'error', content: results.error || 'Unknown error' })
     }
 
-    // Add new prompt
-    get().addLine({ type: 'prompt', content: get().getPrompt() })
+    // No trailing prompt — the live input bar already serves as the prompt
   },
 
   clearScreen: () => {

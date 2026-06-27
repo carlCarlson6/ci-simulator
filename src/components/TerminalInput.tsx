@@ -29,13 +29,11 @@ export function TerminalInput() {
   const handleSubmit = useCallback(() => {
     if (input.trim()) {
       executeCommand(input)
-    } else {
-      // Just add a new prompt for empty input
-      addLine({ type: 'prompt', content: getPrompt() })
     }
+    // Empty Enter does nothing extra — the live input bar already shows the prompt
     setInput('')
     setHistoryIndex(-1)
-  }, [input, executeCommand, addLine, getPrompt, setHistoryIndex])
+  }, [input, executeCommand, setHistoryIndex])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

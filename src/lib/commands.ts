@@ -229,6 +229,9 @@ const commands: Record<string, CommandHandler> = {
   },
 
   history: (_args, context) => {
+    if (context.history.length === 0) {
+      return { success: true, data: { output: 'No commands in history' } }
+    }
     const lines = context.history.map((cmd, index) => {
       const num = String(index + 1).padStart(4, ' ')
       return `${num}  ${cmd}`
