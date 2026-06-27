@@ -1,15 +1,30 @@
 // src/lib/commands.ts
 import { FileSystem } from './fileSystem'
 
+interface TreeNode {
+  name: string
+  type: 'file' | 'directory'
+  children: TreeNode[]
+}
+
+function renderNode(node: TreeNode, prefix: string = '', isLast: boolean = true): string {
+  const connector = isLast ? '└── ' : '├── '
+  const displayName = node.type === 'directory' ? `${node.name}/` : node.name
+  let result = prefix + connector + displayName
+
+  for (let i = 0; i < node.children.length; i++) {
+    const child = node.children[i]
+    const childIsLast = i === node.children.length - 1
+    const childPrefix = prefix + (isLast ? '    ' : '│   ')
+    result += '\n' + renderNode(child, childPrefix, childIsLast)
+  }
+
+  return result
+}
+
 function renderFileSystemTree(fileSystem: FileSystem): string {
   const allPaths = fileSystem.getAllPaths()
   if (allPaths.length === 0) return ''
-
-  interface TreeNode {
-    name: string
-    type: 'file' | 'directory'
-    children: TreeNode[]
-  }
 
   const root: TreeNode = { name: '/', type: 'directory', children: [] }
 
@@ -29,22 +44,52 @@ function renderFileSystemTree(fileSystem: FileSystem): string {
     }
   }
 
-  function renderNode(node: TreeNode, prefix: string = '', isLast: boolean = true): string {
-    const connector = isLast ? '└── ' : '├── '
-    const displayName = node.type === 'directory' ? `${node.name}/` : node.name
-    let result = prefix + connector + displayName
-
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i]
-      const childIsLast = i === node.children.length - 1
-      const childPrefix = prefix + (isLast ? '    ' : '│   ')
-      result += '\n' + renderNode(child, childPrefix, childIsLast)
-    }
-
-    return result
+  let result = '/'
+  for (let i = 0; i < root.children.length; i++) {
+    const child = root.children[i]
+    const childIsLast = i === root.children.length - 1
+    result += '\n' + renderNode(child, '', childIsLast)
   }
 
-  let result = '/'
+  return result
+}
+
+function renderTreeFromPath(fileSystem: FileSystem, startPath: string): string {
+  const allPaths = fileSystem.getAllPaths()
+  const normalizedStart = fileSystem.resolvePath(startPath)
+  const entry = fileSystem.getEntry(normalizedStart)
+  if (!entry) {
+    throw new Error(`ls: cannot access '${startPath}': No such file or directory`)
+  }
+
+  const filteredPaths = allPaths.filter(
+    (p) => p === normalizedStart || p.startsWith(normalizedStart === '/' ? '' : normalizedStart + '/')
+  )
+
+  if (filteredPaths.length === 0) return normalizedStart
+
+  const rootName = normalizedStart === '/' ? '/' : normalizedStart.split('/').pop() || normalizedStart
+  const root: TreeNode = { name: rootName, type: 'directory', children: [] }
+
+  for (const path of filteredPaths) {
+    if (path === normalizedStart) continue
+    const relative = path.slice(normalizedStart === '/' ? 1 : normalizedStart.length + 1)
+    const parts = relative.split('/').filter(Boolean)
+    let current = root
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]
+      const fullPath = normalizedStart + '/' + parts.slice(0, i + 1).join('/')
+      const type = fileSystem.getEntry(fullPath)?.type || 'file'
+      let child = current.children.find((c) => c.name === part)
+      if (!child) {
+        child = { name: part, type, children: [] }
+        current.children.push(child)
+      }
+      current = child
+    }
+  }
+
+  let result = rootName
   for (let i = 0; i < root.children.length; i++) {
     const child = root.children[i]
     const childIsLast = i === root.children.length - 1
@@ -97,7 +142,7 @@ export type CommandHandler = (args: string[], context: CommandContext) => Comman
 const manPages: Record<string, string> = {
   help: 'help\n\nShow available commands and brief descriptions.\n\nUsage: help',
   clear: 'clear\n\nClear the terminal screen.\n\nUsage: clear',
-  ls: 'ls\n\nList directory contents.\n\nUsage: ls [options] [path]\nOptions:\n  -a    Show hidden files\n  -l    Long format with permissions, size, date',
+  ls: 'ls\n\nList directory contents.\n\nUsage: ls [options] [path]\nOptions:\n  -a       Show hidden files\n  -l       Long format with permissions, size, date\n  -tree    Show directory tree from current (or given) path\n  -gtree   Show global directory tree from root',
   cd: 'cd\n\nChange the current directory.\n\nUsage: cd <path>\n  cd ~       Go to home directory\n  cd -       Go to previous directory',
   pwd: 'pwd\n\nPrint the current working directory.\n\nUsage: pwd',
   cat: 'cat\n\nDisplay file contents.\n\nUsage: cat <file>',
@@ -127,7 +172,7 @@ const commands: Record<string, CommandHandler> = {
         'Terminal Simulator - Available Commands',
         '',
         'File System Commands:',
-        '  ls [-a] [-l] [path]  List directory contents',
+        '  ls [-a] [-l] [-tree] [-gtree] [path]  List directory contents',
         '  cd <path>            Change directory',
         '  pwd                  Print working directory',
         '  cat <file>           Display file contents',
@@ -164,9 +209,28 @@ const commands: Record<string, CommandHandler> = {
   ls: (args, context) => {
     const showHidden = args.includes('-a') || args.includes('-la') || args.includes('-al')
     const longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al')
+    const treeLocal = args.includes('-tree')
+    const treeGlobal = args.includes('-gtree')
     const pathArg = args.find((arg) => !arg.startsWith('-'))
 
+    if (treeGlobal) {
+      return {
+        success: true,
+        data: { output: renderFileSystemTree(context.fileSystem) },
+      }
+    }
+
     const path = pathArg || context.currentPath
+
+    if (treeLocal) {
+      try {
+        const tree = renderTreeFromPath(context.fileSystem, path)
+        return { success: true, data: { output: tree } }
+      } catch (error) {
+        return { success: false, error: (error as Error).message }
+      }
+    }
+
     try {
       const resolved = context.fileSystem.resolvePath(path, context.currentPath)
       const entries = context.fileSystem.listDirectory(resolved)

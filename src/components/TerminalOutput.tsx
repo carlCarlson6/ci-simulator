@@ -30,19 +30,19 @@ export function TerminalOutput() {
   return (
     <div
       ref={scrollRef}
-      className="h-full overflow-y-auto terminal-scrollbar terminal-glow p-4 pb-2"
+      className="h-full overflow-y-auto terminal-scrollbar p-4 pb-2"
     >
       {lines.map((line) => (
         <div
           key={line.id}
            className={`whitespace-pre-wrap break-all ${
              line.type === 'error'
-               ? 'text-terminal-red terminal-glow-red'
+                ? 'text-terminal-red'
                : line.type === 'system'
                ? 'text-terminal-yellow'
                : line.type === 'prompt'
                ? 'text-terminal-green font-bold mb-1'
-               : 'text-terminal-green-dim'
+                : 'text-terminal-green-dark opacity-70'
            }`}
         >
           {line.type === 'prompt' && line.content.startsWith('user:') ? (
