@@ -30,7 +30,7 @@ export function TerminalOutput() {
   return (
     <div
       ref={scrollRef}
-      className="flex-1 overflow-y-auto terminal-scrollbar terminal-glow"
+      className="flex-1 h-full overflow-y-auto terminal-scrollbar terminal-glow"
     >
       {lines.map((line) => (
         <div
