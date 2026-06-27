@@ -7,7 +7,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Quick-Win Commands:** ✅ Complete — 11 new commands implemented. See [P003-quick-win-commands.md](plans/P003-quick-win-commands.md).  
 > **Text Editor Modal:** 📝 Planned — see [P004-text-editor-modal.md](plans/P004-text-editor-modal.md)  
 > **Filesystem Persistence:** ✅ Complete — see [P005-filesystem-localstorage-persistence.md](plans/P005-filesystem-localstorage-persistence.md)  
-> **TanStack Start Migration:** 📝 Planned — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
+> **TanStack Start Migration:** ✅ Complete — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).
 
@@ -23,7 +23,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 - 21 implemented commands with color-coded output
 - Command history (up/down arrows) — session-only, not persisted
 - Tab completion for commands and file paths
-- Server API middleware ready for real system info (`whoami`, `hostname`, `date`)
+- Type-safe server functions for HTTP proxy (`curl` via `createServerFn`)
 - Error handling with red neon error messages
 - Easter egg (`rm -rf /`)
 
@@ -40,7 +40,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 - `sudo` easter egg
 - File persistence (localStorage or DB)
 - Environment variables (`export`, `env`)
-- Network commands (`ping`, `curl` — simulated)
+- Network commands (`ping` — simulated)
 - ASCII art generators (`cowsay`, `figlet`)
 - Multi-tab terminal sessions
 - Sound effects
@@ -141,7 +141,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 11. Quick-Win Commands | ✅ Complete | [P003](plans/P003-quick-win-commands.md) — 11 new commands (cp, mv, ls -la, find, grep, ping, ps, top, curl, sudo, man, cowsay) |
 | 12. Text Editor Modal | 📝 Planned | [P004](plans/P004-text-editor-modal.md) — in-terminal modal editor via `edit <file>` command |
 | 13. Filesystem Persistence | ✅ Complete | [P005](plans/P005-filesystem-localstorage-persistence.md) — persist filesystem to `localStorage` with `reset` command |
-| 14. TanStack Start Migration | 📝 Planned | [P006](plans/P006-tanstack-start-migration.md) — migrate to TanStack Start SPA mode, replace Vite middleware with `createServerFn` |
+| 14. TanStack Start Migration | ✅ Complete | [P006](plans/P006-tanstack-start-migration.md) — migrated to TanStack Start SPA mode, replaced Vite middleware with `createServerFn` |
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 

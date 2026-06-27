@@ -25,17 +25,17 @@
 
 **Steps:**
 
-- [ ] **Step 1: Add dependencies to `package.json`**
+- [x] **Step 1: Add dependencies to `package.json`**
   - `dependencies`: add `"@tanstack/react-start": "^1.168.0"`, `"zod": "^3.23.0"`
   - `devDependencies`: add `"@types/node": "^22.0.0"`
   - Change `build` script from `"tsc && vite build"` to `"vite build"` (route tree generation must run before TS sees `routeTree.gen.ts`)
 
-- [ ] **Step 2: Install**
+- [x] **Step 2: Install**
   ```bash
   npm install
   ```
 
-**Test:** `npm install` completes with zero errors. `node_modules/@tanstack/react-start/package.json` exists.
+**Test:** ✅ `npm install` completed with zero errors. `node_modules/@tanstack/react-start/package.json` exists.
 
 ---
 
@@ -50,7 +50,7 @@
 
 **Steps:**
 
-- [ ] **Step 1: Rewrite `vite.config.ts`**
+- [x] **Step 1: Rewrite `vite.config.ts`**
 
   ```ts
   import { defineConfig } from 'vite'
@@ -69,10 +69,10 @@
   })
   ```
 
-- [ ] **Step 2: Delete `index.html`**
+- [x] **Step 2: Delete `index.html`**
   TanStack Start generates the HTML document shell via `src/routes/__root.tsx`.
 
-**Test:** `npm run dev` starts the Vite dev server on port 3000. It will error on missing `src/routes/__root.tsx` — expected, resolved in Task 3.
+**Test:** ✅ `npm run dev` started the Vite dev server on port 3000 as expected.
 
 ---
 
@@ -159,7 +159,7 @@
   }
   ```
 
-- [ ] **Step 3: Create `src/routes/index.tsx`**
+- [x] **Step 3: Create `src/routes/index.tsx`**
 
   ```tsx
   import { createFileRoute } from '@tanstack/react-router'
@@ -170,11 +170,11 @@
   })
   ```
 
-- [ ] **Step 4: Delete obsolete files**
+- [x] **Step 4: Delete obsolete files**
   - `src/main.tsx`
   - `src/routes.tsx`
 
-**Test:** `npm run dev` generates `src/routeTree.gen.ts` on first run. `http://localhost:3000` renders the terminal with identical styling (VT323 font, black background, glow). Existing sync commands (`help`, `ls`, `clear`, `echo`) work.
+**Test:** ✅ `npm run dev` generated `src/routeTree.gen.ts` on first run. `http://localhost:3000` renders the terminal with identical styling (VT323 font, black background, glow). Existing sync commands (`help`, `ls`, `clear`, `echo`) work.
 
 ---
 
@@ -190,7 +190,7 @@
 
 **Steps:**
 
-- [ ] **Step 1: Create `src/lib/proxy.server.ts`**
+- [x] **Step 1: Create `src/lib/proxy.server.ts`**
 
   Extract the Node `http`/`https` proxy logic from the old Vite middleware:
 
@@ -243,7 +243,7 @@
   }
   ```
 
-- [ ] **Step 2: Create `src/lib/proxy.functions.ts`**
+- [x] **Step 2: Create `src/lib/proxy.functions.ts`**
 
   ```ts
   import { createServerFn } from '@tanstack/react-start'
@@ -274,7 +274,7 @@
     })
   ```
 
-**Test:** `npm run dev` compiles without TypeScript errors. (Indirect test in Task 5: `curl` returns real HTTP output.)
+**Test:** ✅ `npm run dev` compiles without TypeScript errors. (Indirect test in Task 5: `curl` returns real HTTP output.)
 
 ---
 
@@ -289,14 +289,14 @@
 
 **Steps:**
 
-- [ ] **Step 1: Import the server function**
+- [x] **Step 1: Import the server function**
 
   Add to `src/lib/terminalStore.ts`:
   ```ts
   import { proxyHttpRequest } from './proxy.functions'
   ```
 
-- [ ] **Step 2: Replace the `fetch` call**
+- [x] **Step 2: Replace the `fetch` call**
 
   In the `curl` branch of `executeCommand`, replace:
 
@@ -325,7 +325,7 @@
 
   Keep the existing `.then((data) => { ... })` body formatting and `.catch((err) => { ... })` error formatting exactly as-is.
 
-**Test:**
+**Test:** ✅
 - `curl https://example.com` → returns HTML output in terminal.
 - `curl -I https://example.com` → returns headers only.
 - `curl https://this-domain-does-not-exist-12345.com` → red error message.
@@ -338,19 +338,19 @@
 
 **Steps:**
 
-- [ ] **Step 1: Build**
+- [x] **Step 1: Build**
   ```bash
   npm run build
   ```
 
-- [ ] **Step 2: Preview and spot-check**
+- [x] **Step 2: Preview and spot-check**
   ```bash
   npm run preview
   ```
   - Terminal renders correctly.
   - `curl` command still works.
 
-**Test:** `npm run build` exits code 0. `dist/` contains built assets.
+**Test:** ✅ `npm run build` exits code 0. `dist/client/` and `dist/server/` contain built assets.
 
 ---
 
@@ -396,14 +396,14 @@
 
 ## Build Checklist
 
-- [ ] Task 1: Dependencies installed
-- [ ] Task 2: Vite config rewritten, `index.html` removed
-- [ ] Task 3: File-based routing set up, obsolete files removed
-- [ ] Task 4: Server function and proxy logic created
-- [ ] Task 5: `curl` wired to `proxyHttpRequest`
-- [ ] Task 6: Production build succeeds
-- [ ] TypeScript compiles cleanly
-- [ ] `curl` command works in dev and preview
+- [x] Task 1: Dependencies installed
+- [x] Task 2: Vite config rewritten, `index.html` removed
+- [x] Task 3: File-based routing set up, obsolete files removed
+- [x] Task 4: Server function and proxy logic created
+- [x] Task 5: `curl` wired to `proxyHttpRequest`
+- [x] Task 6: Production build succeeds
+- [x] TypeScript compiles cleanly
+- [x] `curl` command works in dev and preview
 
 ---
 
