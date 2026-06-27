@@ -144,10 +144,10 @@ Add entries for `export` and `env`.
 
 ## Status
 
-**Status:** 📝 Planned — not yet implemented.
+**Status:** 🚧 In Progress — being implemented.
 
 ---
 
 ## Related Documents
 
-- [F002-pipes-redirects.md](F002-pipes-redirects.md) — Pipes would benefit from env vars for data flow
+- [F002-pipes-redirects.md](future/F002-pipes-redirects.md) — Pipes would benefit from env vars for data flow

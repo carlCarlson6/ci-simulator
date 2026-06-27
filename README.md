@@ -10,7 +10,8 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **TanStack Start Migration:** ✅ Complete — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
-> **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).
+> **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).  
+> **Environment Variables:** 🚧 In Progress — see [P010-environment-variables.md](plans/P010-environment-variables.md).
 
 ---
 
@@ -89,7 +90,8 @@ plans/
 ├── P005-filesystem-localstorage-persistence.md  # File system persistence
 ├── P006-tanstack-start-migration.md    # TanStack Start migration
 ├── P007-clerk-authentication.md        # Clerk authentication integration
-└── P009-markdown-renderer.md           # Markdown renderer modal
+├── P009-markdown-renderer.md           # Markdown renderer modal
+├── P010-environment-variables.md       # Environment variables (env/export)
 vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 ```
 
@@ -150,6 +152,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 | 17. Markdown Renderer | ✅ Complete | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
+| 18. Environment Variables | 🚧 In Progress | [P010](plans/P010-environment-variables.md) — `env`/`export`/`echo $VAR` |
 
 ---
 
@@ -197,7 +200,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 ## 📝 Future TODO
 
 - [x] `md <file>` — markdown renderer with DIY parser and modal viewer ([P009](plans/P009-markdown-renderer.md))
-- [ ] `env` / `export` / `echo $VAR` — environment variables
+- [x] `env` / `export` / `echo $VAR` — environment variables ([P010](plans/P010-environment-variables.md))
 - [ ] Pipes and redirects (`|`, `>`, `>>`)
 - [ ] `figlet` — ASCII block letters
 - [ ] Terminal games (`snake`, `2048`, `tetris`)
