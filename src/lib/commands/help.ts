@@ -17,6 +17,7 @@ import { HELP_TEXT as historyHelp } from './history'
 import { HELP_TEXT as cowsayHelp } from './cowsay'
 import { HELP_TEXT as themeHelp } from './theme'
 import { HELP_TEXT as editHelp } from './edit'
+import { HELP_TEXT as mdHelp } from './md'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -37,6 +38,7 @@ export const handler: CommandHandler = () => ({
       mkdirHelp,
       touchHelp,
       editHelp,
+      mdHelp,
       rmHelp,
       cpHelp,
       mvHelp,

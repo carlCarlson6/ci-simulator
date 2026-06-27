@@ -5,6 +5,7 @@ import { getTheme, getDefaultTheme } from '../lib/themes'
 import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
 import { EditorModal } from './EditorModal'
+import { MarkdownModal } from './MarkdownModal'
 
 export function Terminal() {
   const initialize = useTerminalStore((state) => state.initialize)
@@ -45,6 +46,7 @@ export function Terminal() {
         </div>
       </div>
       <EditorModal />
+      <MarkdownModal />
       {/* Scanlines overlay */}
       <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-30" />
       {/* Subtle vignette */}
