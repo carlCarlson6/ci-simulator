@@ -13,86 +13,44 @@ export type TerminalLine = {
 type TerminalState = {
   lines: TerminalLine[]
   history: string[]
-  historyIndex: number
   currentPath: string
   previousPath: string
-  completionCandidates: string[]
-  completionIndex: number
-  serverInfo: {
-    hostname: string
-    username: string
-    date: string
-    platform: string
-    release: string
-  } | null
   fileSystem: FileSystem
 
-  // Actions
   initialize: () => void
   executeCommand: (input: string) => void
   clearScreen: () => void
-  setHistoryIndex: (index: number) => void
-  setCurrentPath: (path: string) => void
   getPrompt: () => string
   getCompletionCandidates: (input: string) => string[]
-  cycleCompletion: (input: string) => string | null
   addLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => void
 }
 
 let lineId = 0
-
 const generateId = () => `line-${++lineId}`
 
 export const useTerminalStore = create<TerminalState>((set, get) => ({
   lines: [],
   history: [],
-  historyIndex: -1,
   currentPath: '/home/user',
   previousPath: '/home/user',
-  completionCandidates: [],
-  completionIndex: -1,
-  serverInfo: null,
   fileSystem: new FileSystem(),
 
   initialize: () => {
     const fs = new FileSystem()
     fs.initializeDefaults()
-    
-    // Fetch server info from API
-    fetch('/api/system-info')
-      .then((res) => res.json())
-      .then((info) => {
-        set({ serverInfo: info })
-      })
-      .catch(() => {
-        // Fallback
-        set({
-          serverInfo: {
-            hostname: 'localhost',
-            username: 'user',
-            date: new Date().toISOString(),
-            platform: 'unknown',
-            release: 'unknown',
-          },
-        })
-      })
 
     set({
       fileSystem: fs,
       lines: [],
       history: [],
-      historyIndex: -1,
       currentPath: '/home/user',
       previousPath: '/home/user',
     })
 
-    // Add initial MOTD
     const motd = fs.readFile('/etc/motd')
     if (motd) {
       get().addLine({ type: 'system', content: motd })
     }
-
-    // Initial prompt is shown live in TerminalInput; no trailing prompt needed in output
   },
 
   executeCommand: (input: string) => {
@@ -100,57 +58,47 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     const trimmed = input.trim()
 
     if (trimmed === '') {
-      // Just add a new prompt
       get().addLine({ type: 'prompt', content: get().getPrompt() })
       return
     }
 
-    // Add the command line to output
-    const promptLine = get().getPrompt() + ' ' + trimmed
-    get().addLine({ type: 'prompt', content: promptLine })
+    // Show the prompt + command in output
+    get().addLine({ type: 'prompt', content: get().getPrompt() + ' ' + trimmed })
 
-    // Execute with PREVIOUS history (current command is NOT yet recorded —
-    // this matches bash behaviour where `history` does not list itself)
-    const results = executeCommand(trimmed, {
+    // Execute with current history (command not yet recorded)
+    const result = executeCommand(trimmed, {
       fileSystem: state.fileSystem,
       currentPath: state.currentPath,
       previousPath: state.previousPath,
       history: state.history,
-      serverInfo: state.serverInfo,
     })
 
-    // Record command in history AFTER execution completes
-    const newHistory = [...state.history, trimmed]
-    set({ history: newHistory, historyIndex: -1 })
+    // Record command in history AFTER execution
+    set({ history: [...state.history, trimmed] })
 
     // Handle special commands
-    const parts = trimmed.split(/\s+/)
-    const command = parts[0]
+    const command = trimmed.split(/\s+/)[0]
 
     if (command === 'clear') {
       get().clearScreen()
       return
     }
 
-    if (command === 'cd' && results.success) {
-      const newPath = results.data?.newPath || state.currentPath
-      const oldPath = state.currentPath
-      set({ currentPath: newPath, previousPath: oldPath })
+    if (command === 'cd' && result.success) {
+      const newPath = result.data?.newPath || state.currentPath
+      set({ currentPath: newPath, previousPath: state.currentPath })
     }
 
     // Add output
-    if (results.success) {
-      if (results.data?.output) {
-        const lines = results.data.output.split('\n')
-        for (const line of lines) {
+    if (result.success) {
+      if (result.data?.output) {
+        for (const line of result.data.output.split('\n')) {
           get().addLine({ type: 'output', content: line })
         }
       }
     } else {
-      get().addLine({ type: 'error', content: results.error || 'Unknown error' })
+      get().addLine({ type: 'error', content: result.error || 'Unknown error' })
     }
-
-    // No trailing prompt — the live input bar already serves as the prompt
   },
 
   clearScreen: () => {
@@ -158,17 +106,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     get().addLine({ type: 'prompt', content: get().getPrompt() })
   },
 
-  setHistoryIndex: (index: number) => {
-    set({ historyIndex: index })
-  },
-
-  setCurrentPath: (path: string) => {
-    set({ currentPath: path })
-  },
-
   getPrompt: () => {
-    const state = get()
-    const path = state.currentPath === '/home/user' ? '~' : state.currentPath
+    const path = get().currentPath === '/home/user' ? '~' : get().currentPath
     return `user:${path}`
   },
 
@@ -177,22 +116,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     return getCompletionCandidates(input, {
       fileSystem: state.fileSystem,
       currentPath: state.currentPath,
-      history: state.history,
     })
-  },
-
-  cycleCompletion: (input: string) => {
-    const candidates = get().getCompletionCandidates(input)
-    if (candidates.length === 0) return null
-
-    const state = get()
-    let newIndex = state.completionIndex + 1
-    if (newIndex >= candidates.length) {
-      newIndex = 0
-    }
-
-    set({ completionCandidates: candidates, completionIndex: newIndex })
-    return candidates[newIndex]
   },
 
   addLine: (line) => {

@@ -1,18 +1,65 @@
 // src/lib/commands.ts
 import { FileSystem } from './fileSystem'
 
+function renderFileSystemTree(fileSystem: FileSystem): string {
+  const allPaths = fileSystem.getAllPaths()
+  if (allPaths.length === 0) return ''
+
+  interface TreeNode {
+    name: string
+    type: 'file' | 'directory'
+    children: TreeNode[]
+  }
+
+  const root: TreeNode = { name: '/', type: 'directory', children: [] }
+
+  for (const path of allPaths) {
+    const parts = path.split('/').filter(Boolean)
+    let current = root
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i]
+      const isLast = i === parts.length - 1
+      const fullPath = '/' + parts.slice(0, i + 1).join('/')
+      const type = fileSystem.getEntry(fullPath)?.type || 'file'
+      let child = current.children.find((c) => c.name === part)
+      if (!child) {
+        child = { name: part, type, children: [] }
+        current.children.push(child)
+      }
+      current = child
+    }
+  }
+
+  function renderNode(node: TreeNode, prefix: string = '', isLast: boolean = true): string {
+    const connector = isLast ? '└── ' : '├── '
+    const displayName = node.type === 'directory' ? `${node.name}/` : node.name
+    let result = prefix + connector + displayName
+
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i]
+      const childIsLast = i === node.children.length - 1
+      const childPrefix = prefix + (isLast ? '    ' : '│   ')
+      result += '\n' + renderNode(child, childPrefix, childIsLast)
+    }
+
+    return result
+  }
+
+  let result = '/'
+  for (let i = 0; i < root.children.length; i++) {
+    const child = root.children[i]
+    const childIsLast = i === root.children.length - 1
+    result += '\n' + renderNode(child, '', childIsLast)
+  }
+
+  return result
+}
+
 export type CommandContext = {
   fileSystem: FileSystem
   currentPath: string
   previousPath: string
   history: string[]
-  serverInfo: {
-    hostname: string
-    username: string
-    date: string
-    platform: string
-    release: string
-  } | null
 }
 
 export type CommandResult = {
@@ -27,62 +74,48 @@ export type CommandResult = {
 export type CommandHandler = (args: string[], context: CommandContext) => CommandResult
 
 const commands: Record<string, CommandHandler> = {
-  help: (_args, _context) => {
-    const output = [
-      'Cyberpunk Terminal Simulator - Available Commands',
-      '',
-      'File System Commands:',
-      '  ls [path]        List directory contents',
-      '  cd <path>        Change directory',
-      '  pwd              Print working directory',
-      '  cat <file>       Display file contents',
-      '  mkdir <dir>      Create directory',
-      '  touch <file>     Create empty file',
-      '  rm [-r] <target> Remove file or directory',
-      '',
-      'System Commands:',
-      '  whoami           Display current user (server)',
-      '  date             Display current date (server)',
-      '  hostname         Display system hostname (server)',
-      '  neofetch         Display system info with ASCII art',
-      '',
-      'General Commands:',
-      '  help             Show this help message',
-      '  clear            Clear terminal screen',
-      '  echo <text>      Print text',
-      '  history          Show command history',
-      '',
-      'Navigation Tips:',
-      '  Use Up/Down arrows for command history',
-      '  Use Tab for command and file completion',
-      '  cd ~ or cd       Go to home directory',
-      '  cd -             Go to previous directory',
-    ].join('\n')
+  help: () => ({
+    success: true,
+    data: {
+      output: [
+        'Terminal Simulator - Available Commands',
+        '',
+        '  ls [-w] [path]   List directory contents (-w: whole filesystem)',
+        '  cd <path>        Change directory',
+        '  pwd              Print working directory',
+        '  cat <file>       Display file contents',
+        '  mkdir <dir>      Create directory',
+        '  touch <file>     Create empty file',
+        '  rm [-r] <target> Remove file or directory',
+        '  echo <text>      Print text',
+        '  clear            Clear terminal screen',
+        '  help             Show this help message',
+      ].join('\n'),
+    },
+  }),
 
-    return { success: true, data: { output } }
-  },
-
-  clear: (_args, _context) => {
-    return { success: true, data: {} }
-  },
+  clear: () => ({ success: true, data: {} }),
 
   ls: (args, context) => {
-    const path = args[0] || context.currentPath
+    const wholeFileSystem = args.includes('-w')
+    const pathArg = args.find((arg) => !arg.startsWith('-'))
+
+    if (wholeFileSystem) {
+      return { success: true, data: { output: renderFileSystemTree(context.fileSystem) } }
+    }
+
+    const path = pathArg || context.currentPath
     try {
       const resolved = context.fileSystem.resolvePath(path, context.currentPath)
       const entries = context.fileSystem.listDirectory(resolved)
-      
+
       if (entries.length === 0) {
         return { success: true, data: { output: '' } }
       }
 
       const formatted = entries.map((name) => {
         const fullPath = resolved === '/' ? '/' + name : resolved + '/' + name
-        const entry = context.fileSystem.getEntry(fullPath)
-        if (entry?.type === 'directory') {
-          return `${name}/`
-        }
-        return name
+        return context.fileSystem.getEntry(fullPath)?.type === 'directory' ? `${name}/` : name
       })
 
       return { success: true, data: { output: formatted.join('\n') } }
@@ -107,7 +140,6 @@ const commands: Record<string, CommandHandler> = {
       if (!entry) {
         return { success: false, error: `cd: no such file or directory: ${args[0]}` }
       }
-
       if (entry.type !== 'directory') {
         return { success: false, error: `cd: not a directory: ${args[0]}` }
       }
@@ -118,9 +150,10 @@ const commands: Record<string, CommandHandler> = {
     }
   },
 
-  pwd: (_args, context) => {
-    return { success: true, data: { output: context.currentPath } }
-  },
+  pwd: (_args, context) => ({
+    success: true,
+    data: { output: context.currentPath },
+  }),
 
   cat: (args, context) => {
     if (args.length === 0) {
@@ -136,9 +169,10 @@ const commands: Record<string, CommandHandler> = {
     }
   },
 
-  echo: (args, _context) => {
-    return { success: true, data: { output: args.join(' ') } }
-  },
+  echo: (args) => ({
+    success: true,
+    data: { output: args.join(' ') },
+  }),
 
   mkdir: (args, context) => {
     if (args.length === 0) {
@@ -161,13 +195,7 @@ const commands: Record<string, CommandHandler> = {
 
     try {
       const resolved = context.fileSystem.resolvePath(args[0], context.currentPath)
-      if (context.fileSystem.exists(resolved)) {
-        // Update modified time
-        const entry = context.fileSystem.getEntry(resolved)
-        if (entry) {
-          entry.modifiedAt = new Date()
-        }
-      } else {
+      if (!context.fileSystem.exists(resolved)) {
         context.fileSystem.createFile(resolved)
       }
       return { success: true, data: { output: '' } }
@@ -183,7 +211,6 @@ const commands: Record<string, CommandHandler> = {
 
     const recursive = args.includes('-r') || args.includes('-rf')
     const targets = args.filter((arg) => !arg.startsWith('-'))
-
     const errors: string[] = []
 
     for (const target of targets) {
@@ -192,8 +219,7 @@ const commands: Record<string, CommandHandler> = {
 
         // Easter egg: rm -rf /
         if (resolved === '/' && recursive) {
-          errors.push('rm: it is dangerous to operate recursively on \'/\'')
-          errors.push('rm: are you sure you want to do this?')
+          errors.push("rm: it is dangerous to operate recursively on '/'")
           errors.push('rm: operation cancelled')
           continue
         }
@@ -210,86 +236,9 @@ const commands: Record<string, CommandHandler> = {
 
     return { success: true, data: { output: '' } }
   },
-
-  whoami: (_args, context) => {
-    const username = context.serverInfo?.username || 'user'
-    return { success: true, data: { output: username } }
-  },
-
-  date: (_args, context) => {
-    const date = context.serverInfo?.date
-      ? new Date(context.serverInfo.date).toString()
-      : new Date().toString()
-    return { success: true, data: { output: date } }
-  },
-
-  hostname: (_args, context) => {
-    const hostname = context.serverInfo?.hostname || 'localhost'
-    return { success: true, data: { output: hostname } }
-  },
-
-  history: (_args, context) => {
-    if (context.history.length === 0) {
-      return { success: true, data: { output: 'No commands in history' } }
-    }
-    const lines = context.history.map((cmd, index) => {
-      const num = String(index + 1).padStart(4, ' ')
-      return `${num}  ${cmd}`
-    })
-    return { success: true, data: { output: lines.join('\n') } }
-  },
-
-  neofetch: (_args, context) => {
-    const info = context.serverInfo
-    const ascii = [
-      '       ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄',
-      '     ▄▀                      ▀▄',
-      '    ▄█  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄  █▄',
-      '   ▄█  █                    █  █▄',
-      '  ▄█   █  ██  ██  ██  ██   █   █▄',
-      ' ▄█    █  ██  ██  ██  ██    █    █▄',
-      ' █     █  ██  ██  ██  ██    █     █',
-      ' █     █  ██  ██  ██  ██    █     █',
-      ' ▀▄    █  ██  ██  ██  ██    █    ▄▀',
-      '  ▀▄   █  ██  ██  ██  ██   █   ▄▀',
-      '   ▀▄  █                    █  ▄▀',
-      '    ▀▄ ▀▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▀ ▄▀',
-      '      ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀',
-    ]
-
-    const infoLines = [
-      `OS: Cyberpunk Terminal OS 1.0`,
-      `Host: ${info?.hostname || 'localhost'}`,
-      `Kernel: ${info?.platform || 'unknown'} ${info?.release || 'unknown'}`,
-      `Uptime: ${Math.floor((Date.now() - (window as any).__START_TIME || Date.now()) / 1000)}s`,
-      `Shell: cts (cyberpunk terminal shell)`,
-      `Resolution: ${window.innerWidth}x${window.innerHeight}`,
-      `DE: None`,
-      `WM: Browser`,
-      `Theme: Matrix`,
-      `Icons: Neon`,
-      `Terminal: Cyberpunk Terminal`,
-      `CPU: Simulated Neural Processor`,
-      `Memory: 64TB DDR7`,
-    ]
-
-    const output: string[] = []
-    const maxLines = Math.max(ascii.length, infoLines.length)
-
-    for (let i = 0; i < maxLines; i++) {
-      const artLine = ascii[i] || ' '.repeat(30)
-      const infoLine = infoLines[i] || ''
-      output.push(`${artLine}  ${infoLine}`)
-    }
-
-    return { success: true, data: { output: output.join('\n') } }
-  },
 }
 
-export function executeCommand(
-  input: string,
-  context: CommandContext
-): CommandResult {
+export function executeCommand(input: string, context: CommandContext): CommandResult {
   const parts = input.trim().split(/\s+/)
   const command = parts[0]
   const args = parts.slice(1)
@@ -304,22 +253,18 @@ export function executeCommand(
 
 export function getCompletionCandidates(
   input: string,
-  context: Pick<CommandContext, 'fileSystem' | 'currentPath' | 'history'>
+  context: Pick<CommandContext, 'fileSystem' | 'currentPath'>
 ): string[] {
   const parts = input.trim().split(/\s+/)
-  
+
   if (parts.length <= 1) {
-    // Complete command names
     const partial = parts[0] || ''
     return Object.keys(commands).filter((cmd) => cmd.startsWith(partial))
   }
 
-  // Complete file paths for the last argument
-  const command = parts[0]
   const partial = parts[parts.length - 1]
   const resolved = context.fileSystem.resolvePath(partial, context.currentPath)
-  
-  // Get the directory part of the partial path
+
   let dir: string
   let prefix: string
 
@@ -334,14 +279,10 @@ export function getCompletionCandidates(
   try {
     const entries = context.fileSystem.listDirectory(dir)
     const candidates = entries.filter((entry) => entry.startsWith(prefix))
-    
+
     return candidates.map((entry) => {
       const fullPath = dir === '/' ? '/' + entry : dir + '/' + entry
-      const entryObj = context.fileSystem.getEntry(fullPath)
-      if (entryObj?.type === 'directory') {
-        return entry + '/'
-      }
-      return entry
+      return context.fileSystem.getEntry(fullPath)?.type === 'directory' ? entry + '/' : entry
     })
   } catch {
     return []

@@ -4,16 +4,15 @@ import { useTerminalStore } from '../lib/terminalStore'
 
 export function TerminalInput() {
   const [input, setInput] = useState('')
+  const [historyIndex, setHistoryIndex] = useState(-1)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
-  
+
   const executeCommand = useTerminalStore((state) => state.executeCommand)
   const clearScreen = useTerminalStore((state) => state.clearScreen)
   const getPrompt = useTerminalStore((state) => state.getPrompt)
   const history = useTerminalStore((state) => state.history)
-  const historyIndex = useTerminalStore((state) => state.historyIndex)
-  const setHistoryIndex = useTerminalStore((state) => state.setHistoryIndex)
-  const cycleCompletion = useTerminalStore((state) => state.cycleCompletion)
+  const getCompletionCandidates = useTerminalStore((state) => state.getCompletionCandidates)
   const addLine = useTerminalStore((state) => state.addLine)
 
   const prompt = getPrompt()
@@ -39,10 +38,9 @@ export function TerminalInput() {
     if (input.trim()) {
       executeCommand(input)
     }
-    // Empty Enter does nothing extra — the live input bar already shows the prompt
     setInput('')
     setHistoryIndex(-1)
-  }, [input, executeCommand, setHistoryIndex])
+  }, [input, executeCommand])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -73,8 +71,9 @@ export function TerminalInput() {
         }
       } else if (e.key === 'Tab') {
         e.preventDefault()
-        const completion = cycleCompletion(input)
-        if (completion) {
+        const candidates = getCompletionCandidates(input)
+        if (candidates.length > 0) {
+          const completion = candidates[0]
           const parts = input.split(/\s+/)
           if (parts.length <= 1) {
             setInput(completion + ' ')
@@ -94,7 +93,7 @@ export function TerminalInput() {
         clearScreen()
       }
     },
-    [input, history, historyIndex, handleSubmit, cycleCompletion, setHistoryIndex, clearScreen, addLine, getPrompt]
+    [input, history, historyIndex, handleSubmit, getCompletionCandidates, clearScreen, addLine, getPrompt]
   )
 
   // Focus input on click anywhere in terminal
@@ -109,7 +108,7 @@ export function TerminalInput() {
     }
   }, [])
 
-  // Re-focus input when window regains focus (e.g. switching back from another tab)
+  // Re-focus input when window regains focus
   useEffect(() => {
     const handleWindowFocus = () => {
       inputRef.current?.focus()
