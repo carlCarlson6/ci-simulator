@@ -16,6 +16,8 @@ import { handler as curlHandler } from './curl'
 import { handler as manHandler } from './man'
 import { handler as cowsayHandler } from './cowsay'
 import { handler as historyHandler } from './history'
+import { handler as themeHandler } from './theme'
+import { handler as resetHandler } from './reset'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -34,6 +36,8 @@ const commands: Record<string, CommandHandler> = {
   man: manHandler,
   cowsay: cowsayHandler,
   history: historyHandler,
+  theme: themeHandler,
+  reset: resetHandler,
 }
 
 export type { CommandContext, CommandResult, CommandHandler } from './types'
