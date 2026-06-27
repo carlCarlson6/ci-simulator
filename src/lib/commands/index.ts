@@ -17,6 +17,7 @@ import { handler as manHandler } from './man'
 import { handler as cowsayHandler } from './cowsay'
 import { handler as historyHandler } from './history'
 import { handler as themeHandler } from './theme'
+import { handler as editHandler, effect as editEffect } from './edit'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -36,12 +37,14 @@ const commands: Record<string, CommandHandler> = {
   cowsay: cowsayHandler,
   history: historyHandler,
   theme: themeHandler,
+  edit: editHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {
   clear: clearEffect,
   cd: cdEffect,
   curl: curlEffect,
+  edit: editEffect,
 }
 
 export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'
