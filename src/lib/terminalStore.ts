@@ -1,7 +1,7 @@
 // src/lib/terminalStore.ts
 import { create } from 'zustand'
 import { FileSystem } from './fileSystem'
-import { executeCommand, getCompletionCandidates } from './commands'
+import { executeCommand, getCompletionCandidates } from './commands/index'
 
 export type TerminalLine = {
   id: string
