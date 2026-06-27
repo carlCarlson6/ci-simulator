@@ -219,4 +219,28 @@ export class FileSystem {
     this.createFile('/home/user/projects/README.md', '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n')
     this.createFile('/etc/motd', 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n')
   }
+
+  serialize(): [string, FileSystemEntry][] {
+    return Array.from(this.entries.entries())
+  }
+
+  deserialize(data: [string, FileSystemEntry][]): void {
+    this.entries.clear()
+    for (const [path, entry] of data) {
+      this.entries.set(path, entry)
+    }
+  }
+
+  clear(): void {
+    this.entries.clear()
+    this.createDirectory('/')
+  }
+}
+
+export function createFileSystemFromSerialized(
+  entries: [string, FileSystemEntry][]
+): FileSystem {
+  const fs = new FileSystem()
+  fs.deserialize(entries)
+  return fs
 }
