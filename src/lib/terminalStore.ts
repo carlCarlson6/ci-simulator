@@ -4,6 +4,7 @@ import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates } from './commands/index'
 import { saveFileSystem, loadFileSystem, clearFileSystemStorage } from './persistence'
 import { getTheme } from './themes'
+import { proxyHttpRequest } from './proxy.functions'
 
 export type TerminalLine = {
   id: string
@@ -128,15 +129,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     // Handle curl asynchronously
     if (command === 'curl' && result.success && result.data?.curlUrl) {
-      fetch('/api/proxy-http', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      proxyHttpRequest({
+        data: {
           url: result.data.curlUrl,
-          method: result.data.curlMethod || 'GET',
-        }),
+          method: (result.data.curlMethod || 'GET') as 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+        },
       })
-        .then((res) => res.json())
         .then((data) => {
           if (data.error) {
             get().addLine({ type: 'error', content: `curl: ${data.error}` })
