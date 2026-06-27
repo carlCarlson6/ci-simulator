@@ -8,7 +8,8 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Text Editor Modal:** 📝 Planned — see [P004-text-editor-modal.md](plans/P004-text-editor-modal.md)  
 > **Filesystem Persistence:** ✅ Complete — see [P005-filesystem-localstorage-persistence.md](plans/P005-filesystem-localstorage-persistence.md)  
 > **TanStack Start Migration:** 📝 Planned — see [P006-tanstack-start-migration.md](plans/P006-tanstack-start-migration.md).  
-> **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).
+> **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
+> **Theme System:** 📝 Planned — see [P008-themes.md](plans/P008-themes.md).
 
 ---
 
@@ -141,6 +142,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 13. Filesystem Persistence | ✅ Complete | [P005](plans/P005-filesystem-localstorage-persistence.md) — persist filesystem to `localStorage` with `reset` command |
 | 14. TanStack Start Migration | 📝 Planned | [P006](plans/P006-tanstack-start-migration.md) — migrate to TanStack Start SPA mode, replace Vite middleware with `createServerFn` |
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
+| 16. Theme System | 📝 Planned | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 
 ---
 
@@ -182,7 +184,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 
 ## 📝 Future TODO
 
-- [ ] `theme` command — color scheme switching
+- [x] `theme` command — color scheme switching (planned: [P008](plans/P008-themes.md))
 - [ ] `env` / `export` / `echo $VAR` — environment variables
 - [ ] Pipes and redirects (`|`, `>`, `>>`)
 - [ ] `figlet` — ASCII block letters
