@@ -5,6 +5,8 @@ export type CommandContext = {
   currentPath: string
   previousPath: string
   history: string[]
+  currentTheme: string
+  setTheme: (name: string) => void
 }
 
 export type CommandResult = {

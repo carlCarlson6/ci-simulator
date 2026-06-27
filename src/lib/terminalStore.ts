@@ -2,7 +2,8 @@
 import { create } from 'zustand'
 import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates } from './commands/index'
-import { saveFileSystem, loadFileSystem } from './persistence'
+import { saveFileSystem, loadFileSystem, clearFileSystemStorage } from './persistence'
+import { getTheme } from './themes'
 
 export type TerminalLine = {
   id: string
@@ -17,6 +18,7 @@ type TerminalState = {
   currentPath: string
   previousPath: string
   fileSystem: FileSystem
+  currentTheme: string
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -24,6 +26,7 @@ type TerminalState = {
   getPrompt: () => string
   getCompletionCandidates: (input: string) => string[]
   addLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => void
+  setTheme: (name: string) => void
 }
 
 let lineId = 0
@@ -35,6 +38,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   currentPath: '/home/user',
   previousPath: '/home/user',
   fileSystem: new FileSystem(),
+  currentTheme: 'cyberpunk',
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -45,12 +49,16 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     const startPath = fs.isDirectory('/home/user') ? '/home/user' : '/'
 
+    const savedTheme = localStorage.getItem('ci-simulator:theme')
+    const initialTheme = savedTheme && getTheme(savedTheme) ? savedTheme : 'cyberpunk'
+
     set({
       fileSystem: fs,
       lines: [],
       history: [],
       currentPath: startPath,
       previousPath: startPath,
+      currentTheme: initialTheme,
     })
 
     const motd = fs.readFile('/etc/motd')
@@ -78,6 +86,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       currentPath: state.currentPath,
       previousPath: state.previousPath,
       history: state.history,
+      currentTheme: state.currentTheme,
+      setTheme: get().setTheme,
     })
 
     // Record command in history AFTER execution
@@ -89,6 +99,25 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (command === 'clear') {
       get().clearScreen()
       saveFileSystem(state.fileSystem)
+      return
+    }
+
+    if (command === 'reset') {
+      clearFileSystemStorage()
+      const fs = new FileSystem()
+      fs.initializeDefaults()
+      const startPath = fs.isDirectory('/home/user') ? '/home/user' : '/'
+      const currentTheme = get().currentTheme
+      set({
+        fileSystem: fs,
+        lines: [],
+        history: [],
+        currentPath: startPath,
+        previousPath: startPath,
+        currentTheme,
+      })
+      get().addLine({ type: 'output', content: 'Filesystem reset to defaults. Refresh to apply clean state.' })
+      get().addLine({ type: 'prompt', content: get().getPrompt() })
       return
     }
 
@@ -191,5 +220,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         },
       ],
     }))
+  },
+
+  setTheme: (name: string) => {
+    const theme = getTheme(name)
+    if (!theme) return
+    set({ currentTheme: name })
+    localStorage.setItem('ci-simulator:theme', name)
   },
 }))
