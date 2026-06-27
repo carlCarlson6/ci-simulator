@@ -11,7 +11,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 > **Clerk Authentication:** 📝 Planned — see [P007-clerk-authentication.md](plans/P007-clerk-authentication.md).  
 > **Theme System:** ✅ Complete — see [P008-themes.md](plans/P008-themes.md).  
 > **Markdown Renderer:** ✅ Complete — see [P009-markdown-renderer.md](plans/P009-markdown-renderer.md).  
-> **Environment Variables:** 🚧 In Progress — see [P010-environment-variables.md](plans/P010-environment-variables.md).
+> **Environment Variables:** ✅ Complete — see [P010-environment-variables.md](plans/P010-environment-variables.md).
 
 ---
 
@@ -22,7 +22,7 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 **Core Features:**
 - Full-screen terminal UI with neon green-on-black color scheme
 - In-memory file system (flat Map structure) with pre-populated directories and files
-- 23 implemented commands with color-coded output
+- 25 implemented commands with color-coded output
 - Command history (up/down arrows) — session-only, not persisted
 - Tab completion for commands and file paths
 - Type-safe server functions for HTTP proxy (`curl` via `createServerFn`)
@@ -41,7 +41,6 @@ A full-screen terminal simulator built with **React**, **Vite**, **TanStack Star
 - Terminal games (`snake`, `2048`, `tetris`)
 - `sudo` easter egg
 - File persistence (localStorage or DB)
-- Environment variables (`export`, `env`)
 - Network commands (`ping` — simulated)
 - ASCII art generators (`cowsay`, `figlet`)
 - Multi-tab terminal sessions
@@ -107,7 +106,9 @@ vite.config.ts              # Vite + TanStack Start plugin (SPA mode)
 | `cd` | Simulated | Change directory (supports `~`, `-`, and default home) |
 | `pwd` | Simulated | Print working directory |
 | `cat` | Simulated | Display file contents |
-| `echo` | Simulated | Print arguments |
+| `echo` | Simulated | Print arguments (supports `$VAR` expansion) |
+| `env` | Simulated | Display environment variables |
+| `export` | Simulated | Set environment variables |
 | `mkdir` | Simulated | Create directory |
 | `touch` | Simulated | Create empty file |
 | `rm` | Simulated | Remove file or directory (supports `-r`/`-rf`) |
@@ -152,7 +153,7 @@ See [`plans/P001-implementation.md`](plans/P001-implementation.md) for detailed 
 | 15. Clerk Authentication | 📝 Planned | [P007](plans/P007-clerk-authentication.md) — add `login`/`logout`/`whoami` commands with Clerk, dynamic prompt prefix |
 | 16. Theme System | ✅ Complete | [P008](plans/P008-themes.md) — `theme` command with 5 static color palettes, persisted in localStorage |
 | 17. Markdown Renderer | ✅ Complete | [P009](plans/P009-markdown-renderer.md) — `md <file>` command with DIY parser and modal viewer |
-| 18. Environment Variables | 🚧 In Progress | [P010](plans/P010-environment-variables.md) — `env`/`export`/`echo $VAR` |
+| 18. Environment Variables | ✅ Complete | [P010](plans/P010-environment-variables.md) — `env`/`export`/`echo $VAR` |
 
 ---
 
@@ -196,6 +197,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 - [x] **`theme` command** — 5 static color palettes (cyberpunk, amber, phosphor, commodore, solarized), persisted in `localStorage`
 - [x] **Text Editor Modal (`edit` command)** — Theme-aware modal editor with Ctrl+S save and Escape quit
 - [x] **`md <file>` — Markdown Renderer** — DIY parser with modal viewer, headers, lists, code blocks, blockquotes, inline formatting
+- [x] **`env` / `export` / `echo $VAR` — Environment Variables** — Zustand-backed env var map, `$VAR` expansion in command args
 
 ## 📝 Future TODO
 

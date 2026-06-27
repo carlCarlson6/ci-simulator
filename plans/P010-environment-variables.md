@@ -144,7 +144,7 @@ Add entries for `export` and `env`.
 
 ## Status
 
-**Status:** 🚧 In Progress — being implemented.
+**Status:** ✅ Complete — implemented.
 
 ---
 
