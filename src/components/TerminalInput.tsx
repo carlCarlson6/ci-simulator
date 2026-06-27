@@ -138,7 +138,7 @@ export function TerminalInput() {
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="off"
-        style={{ caretColor: '#00ff00', resize: 'none', overflow: 'hidden' }}
+        style={{ caretColor: 'var(--color-terminal-green)', resize: 'none', overflow: 'hidden' }}
       />
     </div>
   )
