@@ -3,6 +3,25 @@
 
 import React from 'react'
 
+// ─── Image component with React-native error fallback ─────────────────────────
+
+function MarkdownImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = React.useState(false)
+  if (failed) {
+    return React.createElement(
+      'span',
+      { className: 'text-terminal-red italic' },
+      `[IMAGE FAILED: ${alt}]`
+    )
+  }
+  return React.createElement('img', {
+    src,
+    alt,
+    className: 'max-w-full h-auto my-2 block border border-terminal-green/20',
+    onError: () => setFailed(true),
+  })
+}
+
 // ─── Inline formatting (left-to-right processing) ───────────────────────────
 
 function parseInline(text: string): React.ReactNode[] {
@@ -65,37 +84,30 @@ function parseInline(text: string): React.ReactNode[] {
       const alt = earliestMatch[1]
       const url = earliestMatch[2]
       nodes.push(
-        React.createElement('img', {
+        React.createElement(MarkdownImage, {
           key: nodes.length,
           src: url,
           alt: alt,
-          className:
-            'max-w-full h-auto my-2 block border border-terminal-green/20',
-          onError: (e: React.SyntheticEvent<HTMLImageElement>) => {
-            const el = e.currentTarget
-            el.style.display = 'none'
-            const placeholder = document.createElement('span')
-            placeholder.className = 'text-terminal-red italic'
-            placeholder.textContent = `[IMAGE FAILED: ${alt}]`
-            el.parentNode?.insertBefore(placeholder, el)
-          },
         })
       )
     } else if (pattern.type === 'link') {
       const linkText = earliestMatch[1]
       const url = earliestMatch[2]
+      // Wrap link text + URL in a single keyed container to avoid duplicate-key bugs
       nodes.push(
         React.createElement(
           'span',
-          { key: nodes.length, className: 'text-terminal-cyan underline cursor-default' },
-          linkText
-        )
-      )
-      nodes.push(
-        React.createElement(
-          'span',
-          { key: nodes.length + 1, className: 'text-terminal-green-dark ml-1' },
-          `(${url})`
+          { key: nodes.length, className: 'inline' },
+          React.createElement(
+            'span',
+            { className: 'text-terminal-cyan underline cursor-default' },
+            linkText
+          ),
+          React.createElement(
+            'span',
+            { className: 'text-terminal-green-dark ml-1' },
+            `(${url})`
+          )
         )
       )
     }
@@ -104,6 +116,13 @@ function parseInline(text: string): React.ReactNode[] {
   }
 
   return nodes
+}
+
+// ─── Helpers for Pass 1 block splitting ────────────────────────────────────
+
+function isBlockBoundary(line: string): boolean {
+  // Headers, horizontal rules, and fenced code fences start new blocks
+  return /^#{1,3}\s/.test(line) || line === '---' || line === '```'
 }
 
 // ─── Block-level parsing ─────────────────────────────────────────────────────
@@ -117,6 +136,13 @@ export function markdownParser(content: string): React.ReactNode[] {
   const blocks: string[][] = []
   let currentBlock: string[] = []
   let inCodeBlock = false
+
+  function flushBlock() {
+    if (currentBlock.length > 0) {
+      blocks.push([...currentBlock])
+      currentBlock = []
+    }
+  }
 
   for (const line of rawLines) {
     const trimmed = line.trimEnd()
@@ -134,20 +160,21 @@ export function markdownParser(content: string): React.ReactNode[] {
     }
 
     if (trimmed === '```') {
-      if (currentBlock.length > 0) {
-        blocks.push([...currentBlock])
-        currentBlock = []
-      }
+      flushBlock()
       currentBlock.push(trimmed)
       inCodeBlock = true
       continue
     }
 
     if (trimmed === '') {
-      if (currentBlock.length > 0) {
-        blocks.push([...currentBlock])
-        currentBlock = []
-      }
+      flushBlock()
+      continue
+    }
+
+    // Block-level elements (headers, hr) close the previous block and start their own
+    if (isBlockBoundary(trimmed)) {
+      flushBlock()
+      currentBlock.push(trimmed)
       continue
     }
 
@@ -156,8 +183,8 @@ export function markdownParser(content: string): React.ReactNode[] {
 
   if (inCodeBlock && currentBlock.length > 0) {
     blocks.push(currentBlock) // unclosed code block
-  } else if (currentBlock.length > 0) {
-    blocks.push(currentBlock)
+  } else {
+    flushBlock()
   }
 
   // Pass 2: Convert blocks to React elements
@@ -205,8 +232,8 @@ export function markdownParser(content: string): React.ReactNode[] {
       const text = headerMatch[2]
       const tag = `h${level}` as 'h1' | 'h2' | 'h3'
       const classMap = {
-        h1: 'text-terminal-green text-xl font-bold mt-4 mb-2 border-b',
-        h2: 'text-terminal-green text-lg font-bold mt-3 mb-2 border-b',
+        h1: 'text-terminal-green text-xl font-bold mt-4 mb-2 border-b border-terminal-green/30',
+        h2: 'text-terminal-green text-lg font-bold mt-3 mb-2 border-b border-terminal-green/30',
         h3: 'text-terminal-green text-base font-bold mt-2 mb-1',
       }
       elements.push(
@@ -220,7 +247,7 @@ export function markdownParser(content: string): React.ReactNode[] {
     }
 
     // List items — group consecutive ones into a single <ul>
-    const listItemMatch = firstLine.match(/^[\-*]\s+(.*)$/)
+    const listItemMatch = firstLine.match(/^[-*]\s+(.*)$/)
     if (listItemMatch) {
       const listItems: React.ReactNode[] = []
       listItems.push(
@@ -232,7 +259,7 @@ export function markdownParser(content: string): React.ReactNode[] {
       )
 
       for (const line of rest) {
-        const m = line.match(/^[\-*]\s+(.*)$/)
+        const m = line.match(/^[-*]\s+(.*)$/)
         if (m) {
           listItems.push(
             React.createElement(
