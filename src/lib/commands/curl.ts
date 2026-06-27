@@ -1,5 +1,75 @@
+import { createServerFn } from '@tanstack/react-start'
+import http from 'http'
+import https from 'https'
+import { URL } from 'url'
+import { z } from 'zod'
 import { CommandHandler, CommandEffect } from './types'
-import { proxyHttpRequest } from '../proxy.functions'
+
+async function executeHttpRequest(
+  targetUrl: string,
+  method: string = 'GET',
+  headers: Record<string, string> = {},
+  body?: string
+): Promise<{ status: number; statusText: string; headers: http.IncomingHttpHeaders; body: string }> {
+  const parsed = new URL(targetUrl)
+  const options: http.RequestOptions = {
+    hostname: parsed.hostname,
+    port: parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+    path: parsed.pathname + parsed.search,
+    method,
+    headers,
+    timeout: 10000,
+  }
+
+  const client = parsed.protocol === 'https:' ? https : http
+
+  return new Promise((resolve, reject) => {
+    const req = client.request(options, (res: http.IncomingMessage) => {
+      let responseBody = ''
+      res.on('data', (chunk: Buffer) => { responseBody += chunk })
+      res.on('end', () => {
+        resolve({
+          status: res.statusCode || 0,
+          statusText: res.statusMessage || '',
+          headers: res.headers,
+          body: responseBody,
+        })
+      })
+    })
+
+    req.on('error', (err: Error) => reject(new Error(err.message)))
+    req.on('timeout', () => {
+      req.destroy()
+      reject(new Error('Request timeout'))
+    })
+
+    if (body) req.write(body)
+    req.end()
+  })
+}
+
+const curlRequestSchema = z.object({
+  url: z.string().url(),
+  method: z.enum(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']).optional().default('GET'),
+  headers: z.record(z.string()).optional(),
+  body: z.string().optional(),
+})
+
+const runCurlRequest = createServerFn({ method: 'POST' })
+  .validator(curlRequestSchema)
+  .handler(async ({ data }) => {
+    try {
+      const result = await executeHttpRequest(data.url, data.method, data.headers, data.body)
+      return {
+        status: result.status,
+        statusText: result.statusText,
+        headers: result.headers,
+        body: result.body,
+      }
+    } catch (err) {
+      return { error: (err as Error).message }
+    }
+  })
 
 export const MANUAL = 'curl\n\nTransfer data from or to a server.\n\nUsage: curl [options] <url>\n  -I    Fetch headers only (HEAD request)'
 export const HELP_TEXT = '  curl [-I] <url>       Make HTTP request'
@@ -32,7 +102,7 @@ export const effect: CommandEffect = (result, context) => {
     return 'continue'
   }
 
-  proxyHttpRequest({
+  runCurlRequest({
     data: {
       url: result.data.curlUrl,
       method: (result.data.curlMethod || 'GET') as 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
