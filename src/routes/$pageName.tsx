@@ -48,32 +48,13 @@ function PageRoute() {
   const srcdoc = buildPage(htmlContent, cssContent)
 
   return (
-    <div style={{ height: '100vh', width: '100vw', margin: 0, position: 'relative', background: '#000' }}>
+    <div style={{ height: '100vh', width: '100vw', margin: 0, position: 'relative', background: '#fff' }}>
       <iframe
         srcDoc={srcdoc}
         sandbox=""
         style={{ border: 'none', width: '100%', height: '100%', display: 'block' }}
         title={pageName}
       />
-      <a
-        href="/"
-        style={{
-          position: 'fixed',
-          top: '8px',
-          left: '8px',
-          fontFamily: 'system-ui, sans-serif',
-          fontSize: '13px',
-          color: '#888',
-          textDecoration: 'none',
-          background: 'rgba(0,0,0,0.6)',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          zIndex: 1000,
-          lineHeight: 1.4,
-        }}
-      >
-        ⧉ Terminal
-      </a>
     </div>
   )
 }
@@ -84,7 +65,8 @@ function buildPage(html: string, css: string): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">${styleTag}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>body{background:#fff}</style>${styleTag}
 </head>
 <body>
 ${html}
