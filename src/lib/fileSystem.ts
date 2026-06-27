@@ -228,7 +228,7 @@ export class FileSystem {
 
     this.createFile('/home/user/welcome.txt', 'Welcome to the Terminal Simulator!\n\nType `help` to see available commands.\n')
     this.createFile('/home/user/projects/README.md', '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n')
-    this.createFile('/etc/motd', 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n')
+    this.createFile('/WELCOME_OUTPUT', 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n')
   }
 
   serialize(): [string, FileSystemEntry][] {

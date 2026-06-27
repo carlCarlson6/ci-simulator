@@ -51,16 +51,16 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   initialize: () => {
     const stored = loadFileSystem()
-    const fs = stored ? createFileSystemFromSerialized(stored) : new FileSystem()
+    const fileSystem = stored ? createFileSystemFromSerialized(stored) : new FileSystem()
     if (!stored) {
-      fs.initializeDefaults()
+      fileSystem.initializeDefaults()
     }
 
     const savedPath = localStorage.getItem('ci-simulator:currentPath')
     let startPath = '/'
-    if (savedPath && fs.isDirectory(savedPath)) {
+    if (savedPath && fileSystem.isDirectory(savedPath)) {
       startPath = savedPath
-    } else if (fs.isDirectory('/home/user')) {
+    } else if (fileSystem.isDirectory('/home/user')) {
       startPath = '/home/user'
     }
 
@@ -68,7 +68,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     const initialTheme = savedTheme && getTheme(savedTheme) ? savedTheme : 'cyberpunk'
 
     set({
-      fileSystem: fs,
+      fileSystem: fileSystem,
       lines: [],
       history: [],
       currentPath: startPath,
@@ -77,12 +77,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     })
 
     try {
-      const motd = fs.readFile('/etc/motd')
+      const motd = fileSystem.readFile('/WELCOME_OUTPUT')
       if (motd) {
         get().addLine({ type: 'system', content: motd })
       }
     } catch {
-      // /etc/motd not found, skip
+      // /WELCOME_OUTPUT not found, skip
     }
   },
 
