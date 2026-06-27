@@ -152,13 +152,7 @@ const manPages: Record<string, string> = {
   rm: 'rm\n\nRemove files or directories.\n\nUsage: rm [-r] <target>\n  -r    Remove directories recursively',
   cp: 'cp\n\nCopy files or directories.\n\nUsage: cp [-r] <source> <destination>\n  -r    Copy directories recursively',
   mv: 'mv\n\nMove or rename files or directories.\n\nUsage: mv <source> <destination>',
-  find: 'find\n\nSearch for files in a directory hierarchy.\n\nUsage: find [path] [-name <pattern>]',
-  grep: 'grep\n\nSearch file contents for a pattern.\n\nUsage: grep <pattern> [file...]\n  -r    Search directories recursively',
-  ping: 'ping\n\nSend ICMP echo requests to a host.\n\nUsage: ping [-c <count>] <host>',
-  ps: 'ps\n\nReport a snapshot of current processes.\n\nUsage: ps',
-  top: 'top\n\nDisplay system processes and resource usage.\n\nUsage: top',
   curl: 'curl\n\nTransfer data from or to a server.\n\nUsage: curl [options] <url>\n  -I    Fetch headers only (HEAD request)',
-  sudo: 'sudo\n\nExecute a command as another user.\n\nUsage: sudo <command>\n\nNote: You are not in the sudoers file.',
   man: 'man\n\nDisplay manual pages for commands.\n\nUsage: man <command>',
   cowsay: 'cowsay\n\nGenerate an ASCII cow with a speech bubble.\n\nUsage: cowsay [message]',
   history: 'history\n\nShow command history.\n\nUsage: history',
@@ -179,16 +173,11 @@ const commands: Record<string, CommandHandler> = {
         '  mkdir <dir>           Create directory',
         '  touch <file>          Create empty file',
         '  rm [-r] <target>      Remove file or directory',
-        '  cp [-r] <src> <dest>  Copy file or directory',
-        '  mv <src> <dest>       Move or rename file or directory',
-        '  find [path] [-name]   Search for files',
-        '  grep [-r] <pat> [file] Search file contents',
-        '',
-        'System Commands:',
-        '  ping [-c N] <host>    Send ICMP echo requests',
-        '  ps                    List processes',
-        '  top                   Show system processes',
-        '  curl [-I] <url>       Make HTTP request',
+    '  cp [-r] <src> <dest>  Copy file or directory',
+    '  mv <src> <dest>       Move or rename file or directory',
+    '',
+    'System Commands:',
+    '  curl [-I] <url>       Make HTTP request',
         '',
         'General Commands:',
         '  help                  Show this help message',
@@ -197,9 +186,8 @@ const commands: Record<string, CommandHandler> = {
         '  history               Show command history',
         '  man <command>         Show manual page',
         '',
-        'Fun Commands:',
-        '  cowsay [message]      ASCII cow',
-        '  sudo <command>        Attempt elevated privileges',
+    'Fun Commands:',
+    '  cowsay [message]      ASCII cow',
       ].join('\n'),
     },
   }),
@@ -409,219 +397,6 @@ const commands: Record<string, CommandHandler> = {
     }
   },
 
-  find: (args, context) => {
-    const nameFlag = args.includes('-name')
-    const nameIndex = args.indexOf('-name')
-    const pattern = nameFlag && nameIndex !== -1 && nameIndex + 1 < args.length ? args[nameIndex + 1] : null
-
-    const pathArg = args.find((arg, i) => {
-      if (arg.startsWith('-')) return false
-      if (nameFlag && (i === nameIndex + 1 || i === nameIndex)) return false
-      return true
-    })
-
-    const startPath = pathArg || context.currentPath
-
-    try {
-      const resolved = context.fileSystem.resolvePath(startPath, context.currentPath)
-      const entry = context.fileSystem.getEntry(resolved)
-      if (!entry) {
-        return { success: false, error: `find: '${startPath}': No such file or directory` }
-      }
-
-      const allPaths = context.fileSystem.getAllPaths()
-      const results: string[] = []
-
-      for (const p of allPaths) {
-        if (p === resolved || p.startsWith(resolved === '/' ? '/' : resolved + '/')) {
-          const name = p.split('/').pop() || ''
-          if (pattern) {
-            const regex = new RegExp('^' + pattern.replace(/\*/g, '.*').replace(/\?/g, '.') + '$')
-            if (regex.test(name)) {
-              results.push(p)
-            }
-          } else {
-            results.push(p)
-          }
-        }
-      }
-
-      return { success: true, data: { output: results.join('\n') } }
-    } catch (error) {
-      return { success: false, error: (error as Error).message }
-    }
-  },
-
-  grep: (args, context) => {
-    const recursive = args.includes('-r')
-    const patternIndex = args.findIndex((arg) => !arg.startsWith('-'))
-
-    if (patternIndex === -1) {
-      return { success: false, error: 'grep: missing pattern' }
-    }
-
-    const pattern = args[patternIndex]
-    const targets = args.slice(patternIndex + 1)
-
-    if (targets.length === 0) {
-      return { success: false, error: 'grep: missing file operand' }
-    }
-
-    const results: string[] = []
-    const regex = new RegExp(pattern, 'g')
-
-    for (const target of targets) {
-      try {
-        const resolved = context.fileSystem.resolvePath(target, context.currentPath)
-        const entry = context.fileSystem.getEntry(resolved)
-
-        if (!entry) {
-          results.push(`grep: ${target}: No such file or directory`)
-          continue
-        }
-
-        if (entry.type === 'file') {
-          const content = context.fileSystem.readFile(resolved)
-          const lines = content.split('\n')
-          for (let i = 0; i < lines.length; i++) {
-            if (regex.test(lines[i])) {
-              const prefix = targets.length > 1 ? `${target}:` : ''
-              results.push(`${prefix}${lines[i]}`)
-              regex.lastIndex = 0
-            }
-          }
-        } else if (entry.type === 'directory' && recursive) {
-          const allPaths = context.fileSystem.getAllPaths()
-          for (const p of allPaths) {
-            if (p === resolved || p.startsWith(resolved + '/')) {
-              const fileEntry = context.fileSystem.getEntry(p)
-              if (fileEntry?.type === 'file') {
-                const content = context.fileSystem.readFile(p)
-                const lines = content.split('\n')
-                for (let i = 0; i < lines.length; i++) {
-                  if (regex.test(lines[i])) {
-                    results.push(`${p}:${lines[i]}`)
-                    regex.lastIndex = 0
-                  }
-                }
-              }
-            }
-          }
-        } else if (entry.type === 'directory') {
-          results.push(`grep: ${target}: Is a directory`)
-        }
-      } catch (error) {
-        results.push((error as Error).message)
-      }
-    }
-
-    if (results.some((r) => r.includes('No such file') || r.includes('Is a directory'))) {
-      return { success: false, error: results.join('\n') }
-    }
-
-    if (results.length === 0) {
-      return { success: true, data: { output: '' } }
-    }
-
-    return { success: true, data: { output: results.join('\n') } }
-  },
-
-  ping: (args) => {
-    const countIndex = args.indexOf('-c')
-    let count = 4
-    if (countIndex !== -1 && countIndex + 1 < args.length) {
-      const parsed = parseInt(args[countIndex + 1], 10)
-      if (!isNaN(parsed) && parsed > 0) count = parsed
-    }
-
-    const host = args.find((arg, i) => {
-      if (arg === '-c') return false
-      if (i > 0 && args[i - 1] === '-c') return false
-      return !arg.startsWith('-')
-    })
-
-    if (!host) {
-      return { success: false, error: 'ping: missing host operand' }
-    }
-
-    const isLocalhost = host === 'localhost' || host === '127.0.0.1'
-    const ip = isLocalhost ? '127.0.0.1' : `192.168.1.${Math.floor(Math.random() * 255)}`
-
-    const lines: string[] = [`PING ${host} (${ip}) 56(84) bytes of data.`]
-    let received = 0
-    let totalTime = 0
-
-    for (let i = 1; i <= count; i++) {
-      const latency = isLocalhost ? Math.random() * 0.5 + 0.1 : Math.random() * 80 + 10
-      totalTime += latency
-      received++
-      lines.push(`64 bytes from ${host} (${ip}): icmp_seq=${i} ttl=64 time=${latency.toFixed(2)} ms`)
-    }
-
-    const loss = ((count - received) / count) * 100
-    lines.push('')
-    lines.push(`--- ${host} ping statistics ---`)
-    lines.push(`${count} packets transmitted, ${received} received, ${loss.toFixed(1)}% packet loss, time ${(totalTime + 10).toFixed(0)}ms`)
-    lines.push(`rtt min/avg/max/mdev = ${(totalTime / count * 0.5).toFixed(3)}/${(totalTime / count).toFixed(3)}/${(totalTime / count * 1.5).toFixed(3)}/${(totalTime / count * 0.1).toFixed(3)} ms`)
-
-    return { success: true, data: { output: lines.join('\n') } }
-  },
-
-  ps: () => {
-    const processes = [
-      { pid: 1, user: 'root', cpu: 0.0, mem: 0.1, cmd: 'init' },
-      { pid: 42, user: 'root', cpu: 0.1, mem: 0.2, cmd: 'systemd' },
-      { pid: 133, user: 'user', cpu: 2.5, mem: 1.2, cmd: 'cts' },
-      { pid: 256, user: 'user', cpu: 15.3, mem: 8.5, cmd: 'browser' },
-      { pid: 512, user: 'user', cpu: 3.2, mem: 2.1, cmd: 'neural-link' },
-      { pid: 1024, user: 'root', cpu: 0.5, mem: 0.8, cmd: 'kernel' },
-      { pid: 2048, user: 'user', cpu: 1.8, mem: 1.5, cmd: 'zsh' },
-      { pid: 4096, user: 'user', cpu: 0.3, mem: 0.4, cmd: 'vim' },
-    ]
-
-    const lines = ['  PID  USER     CPU%  MEM%  COMMAND']
-    for (const p of processes) {
-      lines.push(
-        `${String(p.pid).padStart(5, ' ')}  ${p.user.padEnd(7, ' ')}  ${p.cpu.toFixed(1).padStart(5, ' ')}  ${p.mem.toFixed(1).padStart(5, ' ')}  ${p.cmd}`
-      )
-    }
-
-    return { success: true, data: { output: lines.join('\n') } }
-  },
-
-  top: () => {
-    const uptime = Math.floor((Date.now() - ((window as any).__START_TIME || Date.now())) / 1000)
-    const uptimeStr = `${Math.floor(uptime / 3600)}:${String(Math.floor((uptime % 3600) / 60)).padStart(2, '0')}:${String(uptime % 60).padStart(2, '0')}`
-
-    const lines: string[] = [
-      `top - ${new Date().toLocaleTimeString()} up ${uptimeStr},  1 user,  load average: ${(Math.random() * 2).toFixed(2)}, ${(Math.random() * 2).toFixed(2)}, ${(Math.random() * 2).toFixed(2)}`,
-      `Tasks: 8 total,   1 running,   7 sleeping,   0 stopped,   0 zombie`,
-      `%Cpu(s): ${(Math.random() * 30).toFixed(1)} us,  ${(Math.random() * 10).toFixed(1)} sy,  ${(Math.random() * 5).toFixed(1)} ni,  ${(Math.random() * 60).toFixed(1)} id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st`,
-      `MiB Mem :  65536.0 total,  ${(Math.random() * 40000 + 10000).toFixed(1)} free,  ${(Math.random() * 10000 + 5000).toFixed(1)} used,  ${(Math.random() * 10000).toFixed(1)} buff/cache`,
-      '',
-      '  PID  USER     CPU%  MEM%  COMMAND',
-    ]
-
-    const processes = [
-      { pid: 256, user: 'user', cpu: 15.3, mem: 8.5, cmd: 'browser' },
-      { pid: 512, user: 'user', cpu: 3.2, mem: 2.1, cmd: 'neural-link' },
-      { pid: 133, user: 'user', cpu: 2.5, mem: 1.2, cmd: 'cts' },
-      { pid: 2048, user: 'user', cpu: 1.8, mem: 1.5, cmd: 'zsh' },
-      { pid: 1024, user: 'root', cpu: 0.5, mem: 0.8, cmd: 'kernel' },
-      { pid: 4096, user: 'user', cpu: 0.3, mem: 0.4, cmd: 'vim' },
-      { pid: 42, user: 'root', cpu: 0.1, mem: 0.2, cmd: 'systemd' },
-      { pid: 1, user: 'root', cpu: 0.0, mem: 0.1, cmd: 'init' },
-    ]
-
-    for (const p of processes) {
-      lines.push(
-        `${String(p.pid).padStart(5, ' ')}  ${p.user.padEnd(7, ' ')}  ${p.cpu.toFixed(1).padStart(5, ' ')}  ${p.mem.toFixed(1).padStart(5, ' ')}  ${p.cmd}`
-      )
-    }
-
-    return { success: true, data: { output: lines.join('\n') } }
-  },
-
   curl: (args) => {
     const headOnly = args.includes('-I')
     const url = args.find((arg) => !arg.startsWith('-'))
@@ -644,11 +419,6 @@ const commands: Record<string, CommandHandler> = {
       },
     }
   },
-
-  sudo: () => ({
-    success: false,
-    error: 'sudo: You are not in the sudoers file. This incident will be reported.',
-  }),
 
   man: (args) => {
     if (args.length === 0) {
