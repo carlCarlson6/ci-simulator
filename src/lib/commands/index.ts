@@ -91,13 +91,20 @@ export function executeCommand(input: string, context: CommandContext): CommandR
 
 export function getCompletionCandidates(
   input: string,
-  context: Pick<CommandContext, 'fileSystem' | 'currentPath'>
+  context: Pick<CommandContext, 'fileSystem' | 'currentPath' | 'envVars'>
 ): string[] {
   const parts = input.trim().split(/\s+/)
 
   if (parts.length <= 1) {
     const partial = parts[0] || ''
     return Object.keys(commands).filter((cmd) => cmd.startsWith(partial))
+  }
+
+  const command = parts[0]
+
+  if (command === 'env' && parts.length === 2) {
+    const partial = parts[1]
+    return Object.keys(context.envVars).filter((key) => key.startsWith(partial))
   }
 
   const partial = parts[parts.length - 1]

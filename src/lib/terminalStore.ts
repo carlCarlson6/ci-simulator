@@ -190,6 +190,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     return getCompletionCandidates(input, {
       fileSystem: state.fileSystem,
       currentPath: state.currentPath,
+      envVars: state.envVars,
     })
   },
 
