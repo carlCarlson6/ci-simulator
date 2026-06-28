@@ -7,9 +7,13 @@ import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
 import { EditorModal } from '~/lib/commands/edit'
 import { MarkdownModal } from '~/lib/commands/md'
+import { Route } from '../routes/index'
 
 export function Terminal() {
+  const serverUser = Route.useLoaderData()
   const initialize = useTerminalStore((state) => state.initialize)
+  const setUser = useTerminalStore((state) => state.setUser)
+  const setUserInfo = useTerminalStore((state) => state.setUserInfo)
   const currentTheme = useTerminalStore((state) => state.currentTheme)
   const initialized = useRef(false)
 
@@ -18,8 +22,17 @@ export function Terminal() {
       initialized.current = true
       ;(window as any).__START_TIME = Date.now()
       initialize()
+
+      if (serverUser) {
+        setUser(serverUser.username)
+        setUserInfo({
+          id: serverUser.id,
+          email: '',
+          username: serverUser.username,
+        })
+      }
     }
-  }, [initialize])
+  }, [initialize, serverUser, setUser, setUserInfo])
 
   const theme = getTheme(currentTheme) || getDefaultTheme()
 

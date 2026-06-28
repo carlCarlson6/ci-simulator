@@ -3,6 +3,7 @@ import { getCookie } from '@tanstack/react-start/server'
 import { eq } from 'drizzle-orm'
 import { userState } from './db/schema'
 import type { ServerStatePayload } from './db/schema'
+import { use } from 'react'
 
 export type { ServerStatePayload }
 
@@ -61,6 +62,7 @@ export const saveServerStateFn = createServerFn({ method: 'POST' })
 
 export const loadServerStateFn = createServerFn({ method: 'GET' })
   .handler(async (ctx) => {
+    console.log("on loadServerStateFn");
     const userId = await getUserId()
     if (!userId) return null
 

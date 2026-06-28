@@ -15,6 +15,12 @@ export type TerminalLine = {
   timestamp: Date
 }
 
+export type UserInfo = {
+  id: string
+  email: string
+  username: string
+}
+
 type AuthCallbacks = {
   openSignIn?: () => void
   signOut?: () => void
@@ -35,6 +41,7 @@ type TerminalState = {
   markdownContent: string | null
   envVars: Record<string, string>
   user: string | null
+  userInfo: UserInfo | null
   authCallbacks: AuthCallbacks
 
   initialize: () => void
@@ -51,6 +58,7 @@ type TerminalState = {
   closeMarkdown: () => void
   setEnvVar: (key: string, value: string) => void
   setUser: (user: string | null) => void
+  setUserInfo: (userInfo: UserInfo | null) => void
   setAuthCallbacks: (callbacks: AuthCallbacks) => void
   restoreServerState: (data: ServerStatePayload) => void
 }
@@ -73,6 +81,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   markdownContent: null,
   envVars: {},
   user: null,
+  userInfo: null,
   authCallbacks: {},
 
   initialize: () => {
@@ -126,7 +135,6 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     if (trimmed === '') {
       get().addLine({ type: 'prompt', content: get().getPrompt() })
       saveFileSystem(state.fileSystem)
-      if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
       return
     }
 
@@ -192,7 +200,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     // Auto-save filesystem state after every command
     saveFileSystem(get().fileSystem)
-    if (get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
+    if (effect && get().user) syncStateToServer().catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
   },
 
   clearScreen: () => {
@@ -280,6 +288,10 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   setUser: (user: string | null) => {
     set({ user })
+  },
+
+  setUserInfo: (userInfo: UserInfo | null) => {
+    set({ userInfo })
   },
 
   setAuthCallbacks: (callbacks: AuthCallbacks) => {

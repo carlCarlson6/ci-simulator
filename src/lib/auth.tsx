@@ -18,24 +18,31 @@ export function getPromptPrefix(user?: string | null): string {
 }
 
 export function useAuthSync() {
-  const { isSignedIn, user } = useUser()
+  const { isSignedIn, user, isLoaded } = useUser()
   const clerk = useClerk()
   const setUser = useTerminalStore((state) => state.setUser)
+  const setUserInfo = useTerminalStore((state) => state.setUserInfo)
   const setAuthCallbacks = useTerminalStore((state) => state.setAuthCallbacks)
 
   useEffect(() => {
     if (isSignedIn && user) {
       const username = user.username || user.firstName || user.emailAddresses[0]?.emailAddress || 'user'
       setUser(username)
+      setUserInfo({
+        id: user.id,
+        email: user.emailAddresses[0]?.emailAddress || '',
+        username: username,
+      })
       loadStateFromServer().then((data) => {
         if (data) {
           useTerminalStore.getState().restoreServerState(data)
         }
       })
-    } else {
+    } else if (isLoaded) {
       setUser(null)
+      setUserInfo(null)
     }
-  }, [isSignedIn, user, setUser])
+  }, [isSignedIn, isLoaded, user, setUser, setUserInfo])
 
   useEffect(() => {
     setAuthCallbacks({
