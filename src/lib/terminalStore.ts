@@ -7,6 +7,7 @@ import { persistState, syncToServerIfUser } from './sync'
 import { getTheme } from './themes'
 import { getPromptPrefix } from './auth'
 import type { ServerStatePayload } from './serverStorage'
+import { soundEngine } from './soundEngine'
 
 export type TerminalLine = {
   id: string
@@ -106,6 +107,15 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       if (saved) envVars = JSON.parse(saved)
     } catch { /* ignore corrupt data */ }
 
+    try {
+      const savedSound = localStorage.getItem('ci-simulator-sound')
+      if (savedSound) {
+        const s = JSON.parse(savedSound)
+        if (s.enabled) soundEngine.setEnabled(true)
+        if (typeof s.volume === 'number') soundEngine.setVolume(s.volume)
+      }
+    } catch { /* ignore corrupt data */ }
+
     set({
       fileSystem: fileSystem,
       lines: [],
@@ -177,12 +187,14 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
     // Default output handling
     if (result.success) {
+      soundEngine.play('command')
       if (result.data?.output) {
         for (const line of result.data.output.split('\n')) {
           get().addLine({ type: 'output', content: line })
         }
       }
     } else {
+      soundEngine.play('error')
       get().addLine({ type: 'error', content: result.error || 'Unknown error' })
     }
 

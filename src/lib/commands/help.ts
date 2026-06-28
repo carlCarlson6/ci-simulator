@@ -26,6 +26,7 @@ import { HELP_TEXT as whoamiHelp } from './whoami'
 import { HELP_TEXT as resetHelp } from './reset'
 import { HELP_TEXT as publishHelp } from './publish'
 import { HELP_TEXT as pagesHelp } from './pages'
+import { HELP_TEXT as soundHelp } from './sound'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -66,6 +67,7 @@ export const handler: CommandHandler = () => ({
       historyHelp,
       resetHelp,
       themeHelp,
+      soundHelp,
       '  man <command>         Show manual page',
       '',
       'Fun Commands:',
