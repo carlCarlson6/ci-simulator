@@ -1,4 +1,3 @@
-// src/lib/terminalStore.ts
 import { create } from 'zustand'
 import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates, getCommandEffect } from './commands/index'
@@ -6,6 +5,7 @@ import { loadFileSystem } from './persistence'
 import { persistState, syncToServerIfUser } from './sync'
 import { getTheme } from './themes'
 import { getPromptPrefix } from './auth'
+import { ProcessManager } from './processManager'
 import type { ServerStatePayload } from './serverStorage'
 
 export type TerminalLine = {
@@ -43,6 +43,9 @@ type TerminalState = {
   user: string | null
   userInfo: UserInfo | null
   authCallbacks: AuthCallbacks
+  processManager: ProcessManager
+  shellPid: number
+  sessionId: number
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -66,6 +69,9 @@ type TerminalState = {
 let lineId = 0
 const generateId = () => `line-${++lineId}`
 
+const initialPm = new ProcessManager()
+const initialShellPid = initialPm.spawn(0, 'bash', [], true)
+
 export const useTerminalStore = create<TerminalState>((set, get) => ({
   lines: [],
   history: [],
@@ -83,6 +89,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   user: null,
   userInfo: null,
   authCallbacks: {},
+  processManager: initialPm,
+  shellPid: initialShellPid,
+  sessionId: initialShellPid,
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -135,11 +144,21 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       return
     }
 
-    // Show the prompt + command in output
+    const isBackground = trimmed.endsWith(' &')
+    const cmdText = isBackground ? trimmed.slice(0, -2).trimEnd() : trimmed
+
     get().addLine({ type: 'prompt', content: get().getPrompt() + ' ' + trimmed })
 
-    // Execute with current history (command not yet recorded)
-    const result = executeCommand(trimmed, {
+    const firstSpace = cmdText.indexOf(' ')
+    const command = firstSpace === -1 ? cmdText : cmdText.slice(0, firstSpace)
+    const argsStr = firstSpace === -1 ? '' : cmdText.slice(firstSpace + 1)
+    const args = argsStr ? argsStr.split(/\s+/) : []
+
+    const pid = state.processManager.spawn(
+      state.shellPid, command, args, !isBackground
+    )
+
+    const result = executeCommand(cmdText, {
       fileSystem: state.fileSystem,
       currentPath: state.currentPath,
       previousPath: state.previousPath,
@@ -148,13 +167,17 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       setTheme: get().setTheme,
       envVars: state.envVars,
       user: state.user,
+      processManager: state.processManager,
+      sessionId: state.sessionId,
+      pid,
     })
 
-    // Record command in history AFTER execution
+    state.processManager.setExit(pid, result.success ? 0 : 1)
+
     set({ history: [...state.history, trimmed] })
 
-    const command = trimmed.split(/\s+/)[0]
-    const effect = getCommandEffect(command)
+    const cmdName = cmdText.split(/\s+/)[0]
+    const effect = getCommandEffect(cmdName)
 
     if (effect) {
       const outcome = effect(result, {
@@ -173,9 +196,20 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         envVars: state.envVars,
         setEnvVar: (key, value) => get().setEnvVar(key, value),
       })
+      if (outcome === 'handled') {
+        if (!isBackground) {
+          get().addLine({ type: 'prompt', content: get().getPrompt() })
+        } else {
+          get().addLine({ type: 'output', content: `[${pid}] ${pid}` })
+          get().addLine({ type: 'prompt', content: get().getPrompt() })
+        }
+        const st = get()
+        persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+        syncToServerIfUser(st.user).catch(() => {})
+        return
+      }
     }
 
-    // Default output handling
     if (result.success) {
       if (result.data?.output) {
         for (const line of result.data.output.split('\n')) {
@@ -186,7 +220,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       get().addLine({ type: 'error', content: result.error || 'Unknown error' })
     }
 
-    // Persist state and sync to server after every command
+    if (isBackground && result.success) {
+      get().addLine({ type: 'output', content: `[${pid}] ${pid}` })
+    }
+
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
+
     const st = get()
     persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
     syncToServerIfUser(st.user).catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })

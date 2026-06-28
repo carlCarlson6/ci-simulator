@@ -1,4 +1,3 @@
-// src/components/Terminal.tsx
 import { useEffect, useRef } from 'react'
 import { useTerminalStore } from '../lib/terminalStore'
 import { getTheme, getDefaultTheme } from '../lib/themes'
@@ -8,6 +7,21 @@ import { TerminalInput } from './TerminalInput'
 import { EditorModal } from '~/lib/commands/edit'
 import { MarkdownModal } from '~/lib/commands/md'
 import { Route } from '../routes/index'
+
+export function TerminalEmbed() {
+  return (
+    <div className="flex flex-col h-full w-full font-mono overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
+        <TerminalOutput />
+      </div>
+      <div className="shrink-0 w-full px-4 pb-2">
+        <TerminalInput />
+      </div>
+      <EditorModal />
+      <MarkdownModal />
+    </div>
+  )
+}
 
 export function Terminal() {
   const loaderData = Route.useLoaderData()
@@ -60,15 +74,8 @@ export function Terminal() {
     >
       <AuthSyncGate />
       <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)]">
-        <div className="flex-1 overflow-hidden min-h-0">
-          <TerminalOutput />
-        </div>
-        <div className="shrink-0 w-full p-4 pt-2">
-          <TerminalInput />
-        </div>
+        <TerminalEmbed />
       </div>
-      <EditorModal />
-      <MarkdownModal />
       {/* Scanlines overlay */}
       <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-30" />
       {/* Subtle vignette */}

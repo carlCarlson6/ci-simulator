@@ -62,15 +62,15 @@ export const effect: CommandEffect = (result, context) => {
     return 'continue'
   }
 
-  const pageName = result.data.publishPageName
+  const name = result.data.publishPageName
 
-  publishPage({ data: { pageName } })
+  ;(publishPage as any)({ data: { pageName: name } })
     .then((data: any) => {
       if (data.error) {
         context.addLine('error', `publish: ${data.error}`)
         return
       }
-      context.addLine('output', `Published! Visit /${pageName}`)
+      context.addLine('output', `Published! Visit /${name}`)
     })
     .catch((err: Error) => {
       context.addLine('error', `publish: ${err.message}`)

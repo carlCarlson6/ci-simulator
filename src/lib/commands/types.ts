@@ -1,4 +1,5 @@
 import { FileSystem } from '../fileSystem'
+import { ProcessManager } from '../processManager'
 
 export type CommandContext = {
   fileSystem: FileSystem
@@ -9,6 +10,10 @@ export type CommandContext = {
   setTheme: (name: string) => void
   envVars: Record<string, string>
   user?: string | null
+  processManager?: ProcessManager
+  sessionId?: number
+  pid?: number
+  pipedInput?: string[]
 }
 
 export type CommandResult = {
@@ -26,6 +31,7 @@ export type CommandResult = {
     exportVars?: Record<string, string>
     publishPageName?: string
   }
+  pipedOutput?: string[]
 }
 
 export type CommandEffectContext = {

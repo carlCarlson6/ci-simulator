@@ -33,7 +33,7 @@ export async function syncStateToServer(): Promise<void> {
   let envVars: Record<string, string> = {}
   try { envVars = JSON.parse(envVarsRaw || '{}') } catch { /* ignore */ }
 
-  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
+  await (saveServerState as any)({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
 }
 
 export async function loadStateFromServer(): Promise<ServerStatePayload | null> {

@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DesktopRouteImport } from './routes/desktop'
 import { Route as PageNameRouteImport } from './routes/$pageName'
 import { Route as IndexRouteImport } from './routes/index'
 
+const DesktopRoute = DesktopRouteImport.update({
+  id: '/desktop',
+  path: '/desktop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PageNameRoute = PageNameRouteImport.update({
   id: '/$pageName',
   path: '/$pageName',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
+  '/desktop': typeof DesktopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
+  '/desktop': typeof DesktopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
+  '/desktop': typeof DesktopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$pageName'
+  fullPaths: '/' | '/$pageName' | '/desktop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$pageName'
-  id: '__root__' | '/' | '/$pageName'
+  to: '/' | '/$pageName' | '/desktop'
+  id: '__root__' | '/' | '/$pageName' | '/desktop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PageNameRoute: typeof PageNameRoute
+  DesktopRoute: typeof DesktopRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/desktop': {
+      id: '/desktop'
+      path: '/desktop'
+      fullPath: '/desktop'
+      preLoaderRoute: typeof DesktopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$pageName': {
       id: '/$pageName'
       path: '/$pageName'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PageNameRoute: PageNameRoute,
+  DesktopRoute: DesktopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

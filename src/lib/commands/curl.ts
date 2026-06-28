@@ -32,7 +32,7 @@ export const effect: CommandEffect = (result, context) => {
     return 'continue'
   }
 
-  executeCurl({ data: { url: result.data.curlUrl, method: result.data.curlMethod || 'GET' } })
+  (executeCurl as any)({ data: { url: result.data.curlUrl, method: result.data.curlMethod || 'GET' } })
     .then((data: any) => {
       if (data.error) {
         context.addLine('error', `curl: ${data.error}`)

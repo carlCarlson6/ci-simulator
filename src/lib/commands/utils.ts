@@ -1,8 +1,8 @@
-import { FileSystem } from '../fileSystem'
+import { FileSystem, FileType } from '../fileSystem'
 
 interface TreeNode {
   name: string
-  type: 'file' | 'directory'
+  type: FileType
   children: TreeNode[]
 }
 
@@ -33,7 +33,8 @@ export function renderFileSystemTree(fileSystem: FileSystem): string {
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i]
       const fullPath = '/' + parts.slice(0, i + 1).join('/')
-      const type = fileSystem.getEntry(fullPath)?.type || 'file'
+      const entry = fileSystem.getEntry(fullPath)
+      const type = entry?.type || 'file'
       let child = current.children.find((c) => c.name === part)
       if (!child) {
         child = { name: part, type, children: [] }
@@ -78,7 +79,8 @@ export function renderTreeFromPath(fileSystem: FileSystem, startPath: string): s
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i]
       const fullPath = normalizedStart + '/' + parts.slice(0, i + 1).join('/')
-      const type = fileSystem.getEntry(fullPath)?.type || 'file'
+      const entry = fileSystem.getEntry(fullPath)
+      const type = entry?.type || 'file'
       let child = current.children.find((c) => c.name === part)
       if (!child) {
         child = { name: part, type, children: [] }
