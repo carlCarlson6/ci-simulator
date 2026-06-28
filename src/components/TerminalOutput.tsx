@@ -17,6 +17,7 @@ function renderPrompt(content: string) {
       <span className="text-terminal-green font-bold">{prefix}</span>
       <span className="text-terminal-green-dark">:</span>
       <span className="text-terminal-green-dark">{path}</span>
+      <span className="text-terminal-cyan opacity-80"> $</span>
       <span>{command}</span>
     </span>
   )
@@ -35,28 +36,36 @@ export function TerminalOutput() {
   return (
     <div
       ref={scrollRef}
-      className="h-full overflow-y-auto terminal-scrollbar p-4 pb-2"
+      className="h-full overflow-y-auto terminal-scrollbar p-4 pb-2 flex flex-col gap-px"
     >
-      {lines.map((line) => (
-        <div
-          key={line.id}
-           className={`whitespace-pre-wrap break-all ${
-             line.type === 'error'
-                ? 'text-terminal-red'
-               : line.type === 'system'
-               ? 'text-terminal-yellow'
-               : line.type === 'prompt'
-               ? 'text-terminal-green font-bold mb-1'
-                : 'text-terminal-green-dark opacity-70'
-           }`}
-        >
-          {line.type === 'prompt' && line.content.includes(':') ? (
-            renderPrompt(line.content)
-          ) : (
-            line.content
-          )}
-        </div>
-      ))}
+      {lines.map((line) => {
+        if (line.type === 'error') {
+          return (
+            <div key={line.id} className="whitespace-pre-wrap break-all text-terminal-red terminal-glow-red leading-snug">
+              {line.content}
+            </div>
+          )
+        }
+        if (line.type === 'system') {
+          return (
+            <div key={line.id} className="whitespace-pre-wrap break-all text-terminal-yellow terminal-glow-yellow terminal-system-line leading-snug">
+              {line.content}
+            </div>
+          )
+        }
+        if (line.type === 'prompt') {
+          return (
+            <div key={line.id} className="whitespace-pre-wrap break-all text-terminal-green font-bold mt-2 first:mt-0 leading-snug">
+              {line.content.includes(':') ? renderPrompt(line.content) : line.content}
+            </div>
+          )
+        }
+        return (
+          <div key={line.id} className="whitespace-pre-wrap break-all text-terminal-green-dark leading-snug">
+            {line.content}
+          </div>
+        )
+      })}
     </div>
   )
 }

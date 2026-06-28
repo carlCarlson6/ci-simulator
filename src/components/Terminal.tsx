@@ -59,25 +59,41 @@ export function Terminal() {
       } as React.CSSProperties}
     >
       <AuthSyncGate />
-      <div className="relative flex-1 flex flex-col min-h-0 z-10 border-2 border-terminal-green-dark/50 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,255,0,0.15)]">
+      <div className="relative flex-1 flex flex-col min-h-0 z-10 border border-terminal-green-dark/40 rounded-lg overflow-hidden terminal-flicker"
+        style={{ boxShadow: '0 0 30px color-mix(in srgb, var(--color-terminal-green) 12%, transparent), 0 0 60px color-mix(in srgb, var(--color-terminal-green) 4%, transparent)' }}
+      >
+        {/* Title bar */}
+        <div className="shrink-0 flex items-center justify-between px-4 py-1.5 bg-terminal-bg terminal-title-border select-none">
+          <div className="flex items-center gap-3">
+            <span className="text-terminal-green-dim text-xs tracking-widest uppercase opacity-60">ci-simulator</span>
+            <span className="text-terminal-green-dim opacity-30">│</span>
+            <span className="text-terminal-green-dark text-xs opacity-50 tracking-wide">{theme.label}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-terminal-green-dim opacity-40" />
+            <span className="w-2.5 h-2.5 rounded-full bg-terminal-green-dark opacity-50" />
+            <span className="w-2.5 h-2.5 rounded-full terminal-glow"
+              style={{ backgroundColor: 'var(--color-terminal-green)', opacity: 0.7 }}
+            />
+          </div>
+        </div>
+
+        {/* Output area */}
         <div className="flex-1 overflow-hidden min-h-0">
           <TerminalOutput />
         </div>
-        <div className="shrink-0 w-full p-4 pt-2">
+
+        {/* Input area */}
+        <div className="shrink-0 w-full px-4 py-2 terminal-input-border bg-terminal-bg">
           <TerminalInput />
         </div>
       </div>
       <EditorModal />
       <MarkdownModal />
       {/* Scanlines overlay */}
-      <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-30" />
-      {/* Subtle vignette */}
-      <div
-        className="absolute inset-0 pointer-events-none z-20"
-        style={{
-          background: `radial-gradient(circle, transparent 60%, color-mix(in srgb, var(--color-terminal-green) 3%, transparent) 100%)`,
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-20" />
+      {/* Corner vignette */}
+      <div className="absolute inset-0 pointer-events-none z-20 terminal-vignette" />
     </div>
   )
 }
