@@ -38,9 +38,23 @@ async function withDb<T>(fn: (db: Db) => Promise<T>): Promise<T> {
   }
 }
 
+function isValidPayload(data: unknown): data is ServerStatePayload {
+  if (!data || typeof data !== 'object') return false
+  const p = data as Record<string, unknown>
+  return (
+    p.v === 1 &&
+    Array.isArray(p.fileSystem) &&
+    typeof p.currentPath === 'string' &&
+    typeof p.theme === 'string' &&
+    typeof p.envVars === 'object' &&
+    p.envVars !== null
+  )
+}
+
 export const saveServerStateFn = createServerFn({ method: 'POST' })
   .validator((data: unknown): ServerStatePayload => {
-    return data as ServerStatePayload
+    if (!isValidPayload(data)) throw new Error('Invalid server state payload')
+    return data
   })
   .handler(async (ctx) => {
     const userId = await getUserId()
@@ -125,19 +139,6 @@ function createDefaultServerState(): ServerStatePayload {
     theme: 'cyberpunk',
     envVars: {},
   }
-}
-
-function isValidPayload(data: unknown): data is ServerStatePayload {
-  if (!data || typeof data !== 'object') return false
-  const p = data as Record<string, unknown>
-  return (
-    p.v === 1 &&
-    Array.isArray(p.fileSystem) &&
-    typeof p.currentPath === 'string' &&
-    typeof p.theme === 'string' &&
-    typeof p.envVars === 'object' &&
-    p.envVars !== null
-  )
 }
 
 export async function loadStateFromServer(): Promise<ServerStatePayload | null> {
