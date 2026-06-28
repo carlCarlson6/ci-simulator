@@ -1,3 +1,4 @@
+import { executeCurl } from '../server-fns'
 import { CommandHandler, CommandEffect } from './types'
 
 export const MANUAL = 'curl\n\nTransfer data from or to a server.\n\nUsage: curl [options] <url>\n  -I    Fetch headers only (HEAD request)'
@@ -31,13 +32,8 @@ export const effect: CommandEffect = (result, context) => {
     return 'continue'
   }
 
-  fetch('/api/curl', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: { url: result.data.curlUrl, method: result.data.curlMethod || 'GET' } }),
-  })
-    .then(res => res.json())
-    .then((data) => {
+  executeCurl({ data: { url: result.data.curlUrl, method: result.data.curlMethod || 'GET' } })
+    .then((data: any) => {
       if (data.error) {
         context.addLine('error', `curl: ${data.error}`)
         return
@@ -69,7 +65,7 @@ export const effect: CommandEffect = (result, context) => {
         context.addLine('output', line)
       }
     })
-    .catch((err) => {
+    .catch((err: Error) => {
       context.addLine('error', `curl: ${err.message}`)
     })
 

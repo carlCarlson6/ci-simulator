@@ -1,3 +1,4 @@
+import { publishPage } from '../server-fns'
 import { CommandHandler, CommandEffect } from './types'
 
 export const MANUAL = `publish
@@ -63,20 +64,15 @@ export const effect: CommandEffect = (result, context) => {
 
   const pageName = result.data.publishPageName
 
-  fetch('/api/publish', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pageName }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
+  publishPage({ data: { pageName } })
+    .then((data: any) => {
       if (data.error) {
         context.addLine('error', `publish: ${data.error}`)
         return
       }
       context.addLine('output', `Published! Visit /${pageName}`)
     })
-    .catch((err) => {
+    .catch((err: Error) => {
       context.addLine('error', `publish: ${err.message}`)
     })
 

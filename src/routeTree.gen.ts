@@ -11,10 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PageNameRouteImport } from './routes/$pageName'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiUserRouteImport } from './routes/api/user'
-import { Route as ApiStateRouteImport } from './routes/api/state'
-import { Route as ApiPublishRouteImport } from './routes/api/publish'
-import { Route as ApiCurlRouteImport } from './routes/api/curl'
 
 const PageNameRoute = PageNameRouteImport.update({
   id: '/$pageName',
@@ -26,86 +22,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiUserRoute = ApiUserRouteImport.update({
-  id: '/api/user',
-  path: '/api/user',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiStateRoute = ApiStateRouteImport.update({
-  id: '/api/state',
-  path: '/api/state',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublishRoute = ApiPublishRouteImport.update({
-  id: '/api/publish',
-  path: '/api/publish',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCurlRoute = ApiCurlRouteImport.update({
-  id: '/api/curl',
-  path: '/api/curl',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
-  '/api/curl': typeof ApiCurlRoute
-  '/api/publish': typeof ApiPublishRoute
-  '/api/state': typeof ApiStateRoute
-  '/api/user': typeof ApiUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
-  '/api/curl': typeof ApiCurlRoute
-  '/api/publish': typeof ApiPublishRoute
-  '/api/state': typeof ApiStateRoute
-  '/api/user': typeof ApiUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$pageName': typeof PageNameRoute
-  '/api/curl': typeof ApiCurlRoute
-  '/api/publish': typeof ApiPublishRoute
-  '/api/state': typeof ApiStateRoute
-  '/api/user': typeof ApiUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/$pageName'
-    | '/api/curl'
-    | '/api/publish'
-    | '/api/state'
-    | '/api/user'
+  fullPaths: '/' | '/$pageName'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/$pageName'
-    | '/api/curl'
-    | '/api/publish'
-    | '/api/state'
-    | '/api/user'
-  id:
-    | '__root__'
-    | '/'
-    | '/$pageName'
-    | '/api/curl'
-    | '/api/publish'
-    | '/api/state'
-    | '/api/user'
+  to: '/' | '/$pageName'
+  id: '__root__' | '/' | '/$pageName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PageNameRoute: typeof PageNameRoute
-  ApiCurlRoute: typeof ApiCurlRoute
-  ApiPublishRoute: typeof ApiPublishRoute
-  ApiStateRoute: typeof ApiStateRoute
-  ApiUserRoute: typeof ApiUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,44 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/user': {
-      id: '/api/user'
-      path: '/api/user'
-      fullPath: '/api/user'
-      preLoaderRoute: typeof ApiUserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/state': {
-      id: '/api/state'
-      path: '/api/state'
-      fullPath: '/api/state'
-      preLoaderRoute: typeof ApiStateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/publish': {
-      id: '/api/publish'
-      path: '/api/publish'
-      fullPath: '/api/publish'
-      preLoaderRoute: typeof ApiPublishRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/curl': {
-      id: '/api/curl'
-      path: '/api/curl'
-      fullPath: '/api/curl'
-      preLoaderRoute: typeof ApiCurlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PageNameRoute: PageNameRoute,
-  ApiCurlRoute: ApiCurlRoute,
-  ApiPublishRoute: ApiPublishRoute,
-  ApiStateRoute: ApiStateRoute,
-  ApiUserRoute: ApiUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

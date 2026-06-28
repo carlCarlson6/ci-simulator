@@ -1,3 +1,4 @@
+import { saveServerState, loadServerState } from './server-fns'
 import type { ServerStatePayload } from './db/schema'
 
 export type { ServerStatePayload }
@@ -32,12 +33,12 @@ export async function syncStateToServer(): Promise<void> {
   let envVars: Record<string, string> = {}
   try { envVars = JSON.parse(envVarsRaw || '{}') } catch { /* ignore */ }
 
-  await fetch('/api/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: { v: 1, fileSystem, currentPath, theme, envVars } }) })
+  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
 }
 
 export async function loadStateFromServer(): Promise<ServerStatePayload | null> {
   try {
-    const res = await fetch('/api/state'); const data = await res.json()
+    const data = await loadServerState()
     if (!data || !isValidPayload(data)) return null
     return data
   } catch {
