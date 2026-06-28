@@ -8,7 +8,7 @@ export type ServerStatePayload = {
   envVars: Record<string, string>
 }
 
-export const userState = pgTable('user_state', {
+export const userState = pgTable('virtual_terminal_user_state', {
   userId: text('user_id').primaryKey(),
   data: jsonb('data').$type<ServerStatePayload>().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
