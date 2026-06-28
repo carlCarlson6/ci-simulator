@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { getCookie } from '@tanstack/react-start/server'
 import { eq } from 'drizzle-orm'
 import { userState } from './db/schema'
 import type { ServerStatePayload } from './db/schema'
@@ -7,24 +8,10 @@ export type { ServerStatePayload }
 
 type Db = import('drizzle-orm/postgres-js').PostgresJsDatabase<{ userState: typeof userState }>
 
-function parseCookies(cookieHeader: string): Record<string, string> {
-  const cookies: Record<string, string> = {}
-  for (const cookie of cookieHeader.split(';')) {
-    const idx = cookie.indexOf('=')
-    if (idx > -1) {
-      const key = cookie.slice(0, idx).trim()
-      const val = cookie.slice(idx + 1).trim()
-      if (key) cookies[key] = val
-    }
-  }
-  return cookies
-}
-
-async function getUserId(request: Request): Promise<string | null> {
+async function getUserId(): Promise<string | null> {
   try {
     const { verifyToken } = await import('@clerk/backend')
-    const cookies = parseCookies(request.headers.get('cookie') || '')
-    const sessionToken = cookies['__session']
+    const sessionToken = getCookie('__session')
     if (!sessionToken) return null
     const payload = await verifyToken(sessionToken, {
       secretKey: process.env.CLERK_SECRET_KEY!,
@@ -55,7 +42,7 @@ export const saveServerStateFn = createServerFn({ method: 'POST' })
     return data as ServerStatePayload
   })
   .handler(async (ctx) => {
-    const userId = await getUserId(ctx.request)
+    const userId = await getUserId()
     if (!userId) return { ok: false }
 
     await withDb(async (db) => {
@@ -74,7 +61,7 @@ export const saveServerStateFn = createServerFn({ method: 'POST' })
 
 export const loadServerStateFn = createServerFn({ method: 'GET' })
   .handler(async (ctx) => {
-    const userId = await getUserId(ctx.request)
+    const userId = await getUserId()
     if (!userId) return null
 
     const rows = await withDb(async (db) => {

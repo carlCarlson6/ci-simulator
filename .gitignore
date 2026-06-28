@@ -1,4 +1,5 @@
 /.agents
+/.output
 /dist
 /node_modules
 /src/**/*.js
