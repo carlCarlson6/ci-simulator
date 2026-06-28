@@ -25,6 +25,7 @@ export type CommandResult = {
     markdownContent?: string
     exportVars?: Record<string, string>
     publishPageName?: string
+    listPages?: boolean
   }
 }
 

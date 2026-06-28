@@ -155,6 +155,49 @@ export const executeCurl = createServerFn({ method: 'POST' }).handler(async ({ d
   }
 })
 
+export const listMyPages = createServerFn({ method: 'GET' }).handler(async () => {
+  try {
+    const userId = await getUserId()
+    if (!userId) return { error: 'Authentication required' }
+
+    const { rows, stateRows } = await withDb(async (db) => {
+      const rows = await db.select().from(staticPages).where(eq(staticPages.ownerUserId, userId))
+      const stateRows = await db.select().from(userState).where(eq(userState.userId, userId))
+      return { rows, stateRows }
+    })
+
+    const fileSystem = stateRows.length > 0 ? stateRows[0].data.fileSystem : []
+
+    const pages = rows
+      .map((r) => {
+        const dirPrefix = `/wwwroot/${r.pageName}`
+        const dirEntry = fileSystem.find(([path]) => path === dirPrefix)
+        const htmlEntry = fileSystem.find(([path]) => path === `${dirPrefix}/index.html`)
+
+        let status: 'ok' | 'missing-dir' | 'missing-index'
+        if (!dirEntry || dirEntry[1].type !== 'directory') {
+          status = 'missing-dir'
+        } else if (!htmlEntry || htmlEntry[1].type !== 'file') {
+          status = 'missing-index'
+        } else {
+          status = 'ok'
+        }
+
+        return {
+          pageName: r.pageName,
+          createdAt: r.createdAt.toISOString(),
+          status,
+        }
+      })
+      .sort((a, b) => a.pageName.localeCompare(b.pageName))
+
+    return { pages }
+  } catch (e) {
+    console.error('[listMyPages] error:', e)
+    return { error: 'Internal server error' }
+  }
+})
+
 export const publishPage = createServerFn({ method: 'POST' }).handler(async ({ data }) => {
   try {
     const userId = await getUserId()

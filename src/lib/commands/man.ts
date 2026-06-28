@@ -19,6 +19,8 @@ import { MANUAL as themeManual } from './theme'
 import { MANUAL as mdManual } from './md'
 import { MANUAL as envManual } from './env'
 import { MANUAL as exportManual } from './export'
+import { MANUAL as publishManual } from './publish'
+import { MANUAL as pagesManual } from './pages'
 
 const manPages: Record<string, string> = {
   help: 'help\n\nShow available commands and brief descriptions.\n\nUsage: help',
@@ -43,6 +45,8 @@ const manPages: Record<string, string> = {
   history: historyManual,
   theme: themeManual,
   md: mdManual,
+  publish: publishManual,
+  pages: pagesManual,
 }
 
 export const MANUAL = 'man\n\nDisplay manual pages for commands.\n\nUsage: man <command>'
