@@ -10,10 +10,13 @@ import { MarkdownModal } from '~/lib/commands/md'
 import { Route } from '../routes/index'
 
 export function Terminal() {
-  const serverUser = Route.useLoaderData()
+  const loaderData = Route.useLoaderData()
+  const serverUser = loaderData?.user ?? null
+  const serverState = loaderData?.serverState ?? null
   const initialize = useTerminalStore((state) => state.initialize)
   const setUser = useTerminalStore((state) => state.setUser)
   const setUserInfo = useTerminalStore((state) => state.setUserInfo)
+  const restoreServerState = useTerminalStore((state) => state.restoreServerState)
   const currentTheme = useTerminalStore((state) => state.currentTheme)
   const initialized = useRef(false)
 
@@ -31,8 +34,12 @@ export function Terminal() {
           username: serverUser.username,
         })
       }
+
+      if (serverState) {
+        restoreServerState(serverState)
+      }
     }
-  }, [initialize, serverUser, setUser, setUserInfo])
+  }, [initialize, serverUser, setUser, setUserInfo, serverState, restoreServerState])
 
   const theme = getTheme(currentTheme) || getDefaultTheme()
 

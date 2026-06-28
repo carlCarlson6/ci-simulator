@@ -34,7 +34,6 @@ export type CommandEffectContext = {
   addLine: (type: 'prompt' | 'output' | 'error' | 'system', content: string) => void
   setPaths: (current: string, previous: string) => void
   clearScreen: () => void
-  saveFileSystem: (fs: FileSystem) => void
   openEditor: (filePath: string, content: string) => void
   closeEditor: () => void
   openMarkdown: (filePath: string, content: string) => void
