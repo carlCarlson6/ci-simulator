@@ -43,12 +43,19 @@ body {
 @keyframes flicker {
   0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
     opacity: 0.99;
-    text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-green) 50%, transparent), 0 0 10px color-mix(in srgb, var(--color-terminal-green) 30%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-terminal-green) 15%, transparent),
+                inset 0 0 60px color-mix(in srgb, var(--color-terminal-green) 3%, transparent);
   }
   20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
-    opacity: 0.94;
-    text-shadow: 0 0 2px color-mix(in srgb, var(--color-terminal-green) 30%, transparent), 0 0 5px color-mix(in srgb, var(--color-terminal-green) 10%, transparent);
+    opacity: 0.95;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-terminal-green) 8%, transparent),
+                inset 0 0 30px color-mix(in srgb, var(--color-terminal-green) 1%, transparent);
   }
+}
+
+@keyframes scanline-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
 }
 
 .terminal-cursor {
@@ -68,36 +75,75 @@ body {
   text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-red) 50%, transparent), 0 0 10px color-mix(in srgb, var(--color-terminal-red) 30%, transparent);
 }
 
+.terminal-glow-yellow {
+  text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-yellow) 50%, transparent), 0 0 10px color-mix(in srgb, var(--color-terminal-yellow) 30%, transparent);
+}
+
+.terminal-flicker {
+  animation: flicker 8s infinite;
+}
+
 .terminal-scanlines {
   background: repeating-linear-gradient(
     0deg,
     transparent,
     transparent 2px,
-    color-mix(in srgb, var(--color-terminal-bg) 10%, transparent) 2px,
-    color-mix(in srgb, var(--color-terminal-bg) 10%, transparent) 4px
+    color-mix(in srgb, black 18%, transparent) 2px,
+    color-mix(in srgb, black 18%, transparent) 4px
+  );
+  animation: scanline-drift 0.1s steps(1) infinite;
+  pointer-events: none;
+}
+
+/* Corner vignette — pure dark, not color-tinted */
+.terminal-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, black 40%, transparent) 80%,
+    color-mix(in srgb, black 75%, transparent) 100%
   );
   pointer-events: none;
 }
 
 .terminal-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .terminal-scrollbar::-webkit-scrollbar-track {
-  background: var(--color-terminal-bg);
+  background: transparent;
 }
 
 .terminal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-terminal-green);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-terminal-green) 40%, transparent);
+  border-radius: 3px;
 }
 
 .terminal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-terminal-green) 80%, black);
+  background: color-mix(in srgb, var(--color-terminal-green) 70%, transparent);
 }
 
 .terminal-input:focus {
   outline: none;
   box-shadow: none;
   text-shadow: 0 0 5px color-mix(in srgb, var(--color-terminal-green) 50%, transparent), 0 0 10px color-mix(in srgb, var(--color-terminal-green) 30%, transparent);
+}
+
+/* Title bar separator glow line */
+.terminal-title-border {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-terminal-green) 30%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-terminal-green) 10%, transparent);
+}
+
+/* Input area separator */
+.terminal-input-border {
+  border-top: 1px solid color-mix(in srgb, var(--color-terminal-green) 25%, transparent);
+  box-shadow: 0 -1px 8px color-mix(in srgb, var(--color-terminal-green) 8%, transparent);
+}
+
+/* System message left accent */
+.terminal-system-line {
+  border-left: 2px solid color-mix(in srgb, var(--color-terminal-yellow) 60%, transparent);
+  padding-left: 0.5rem;
+  margin-left: -0.625rem;
 }

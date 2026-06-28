@@ -125,23 +125,19 @@ export function TerminalInput() {
     return () => window.removeEventListener('focus', handleWindowFocus)
   }, [])
 
+  const prefix = prompt.split(':')[0]
+  const path = prompt.split(':')[1]
+
   return (
     <div
       ref={terminalRef}
-      className="flex items-center w-full bg-terminal-bg border-t border-terminal-green-dark/30"
+      className="flex items-center w-full"
     >
-      <span className="whitespace-nowrap mr-2 terminal-glow select-none shrink-0">
-        {(() => {
-          const prefix = prompt.split(':')[0]
-          const path = prompt.split(':')[1]
-          return (
-            <>
-              <span className="text-terminal-green font-bold">{prefix}</span>
-              <span className="text-terminal-green-dark">:</span>
-              <span className="text-terminal-green-dark">{path}</span>
-            </>
-          )
-        })()}
+      <span className="whitespace-nowrap terminal-glow select-none shrink-0 flex items-center">
+        <span className="text-terminal-green font-bold">{prefix}</span>
+        <span className="text-terminal-green-dark">:</span>
+        <span className="text-terminal-green-dark">{path}</span>
+        <span className="text-terminal-cyan font-bold mx-1.5">$</span>
       </span>
       <textarea
         ref={inputRef}
