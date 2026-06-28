@@ -69,8 +69,8 @@ const generateId = () => `line-${++lineId}`
 export const useTerminalStore = create<TerminalState>((set, get) => ({
   lines: [],
   history: [],
-  currentPath: '/home/user',
-  previousPath: '/home/user',
+  currentPath: '/',
+  previousPath: '/',
   fileSystem: new FileSystem(),
   currentTheme: 'cyberpunk',
   editorOpen: false,
@@ -95,8 +95,6 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     let startPath = '/'
     if (savedPath && fileSystem.isDirectory(savedPath)) {
       startPath = savedPath
-    } else if (fileSystem.isDirectory('/home/user')) {
-      startPath = '/home/user'
     }
 
     const savedTheme = localStorage.getItem('ci-simulator:theme')
@@ -200,7 +198,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   },
 
   getPrompt: () => {
-    const path = get().currentPath === '/home/user' ? '~' : get().currentPath
+    const path = get().currentPath === '/' ? '~' : get().currentPath
     const prefix = getPromptPrefix(get().user)
     return `${prefix}:${path}`
   },

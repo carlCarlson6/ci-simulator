@@ -30,7 +30,7 @@ function PageRoute() {
 
   if (!ready) return null
 
-  const dir = `/home/user/wwwroot/${pageName}`
+  const dir = `/wwwroot/${pageName}`
   const dirEntry = fileSystem.entries.get(dir)
   if (!dirEntry || dirEntry.type !== 'directory') {
     return <NotFound />

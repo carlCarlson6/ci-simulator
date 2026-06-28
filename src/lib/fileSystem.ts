@@ -14,8 +14,8 @@ export class FileSystem {
   }
 
   resolvePath(path: string, cwd: string = '/'): string {
-    if (path === '~') return '/home/user'
-    if (path.startsWith('~')) path = '/home/user' + path.slice(1)
+    if (path === '~' || path === '') return '/'
+    if (path.startsWith('~')) path = '/' + path.slice(1)
 
     let absolute = path.startsWith('/') ? path : (cwd === '/' ? '/' + path : cwd + '/' + path)
     const parts = absolute.split('/').filter(Boolean)
@@ -221,30 +221,22 @@ export class FileSystem {
   }
 
   initializeDefaults(): void {
-    const dirs = ['/home', '/home/user', '/home/user/projects', '/etc']
+    const dirs = ['/projects', '/etc', '/wwwroot', '/wwwroot/example']
     for (const dir of dirs) {
       if (!this.entries.has(dir)) this.entries.set(dir, { type: 'directory' })
     }
 
-    const wwwrootDirs = [
-      '/home/user/wwwroot',
-      '/home/user/wwwroot/example',
-    ]
-    for (const dir of wwwrootDirs) {
-      if (!this.entries.has(dir)) this.entries.set(dir, { type: 'directory' })
-    }
-
-    this.createFile('/home/user/welcome.txt', 'Welcome to the Terminal Simulator!\n\nType `help` to see available commands.\n')
-    this.createFile('/home/user/projects/README.md', '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n')
+    this.createFile('/welcome.txt', 'Welcome to the Terminal Simulator!\n\nType `help` to see available commands.\n')
+    this.createFile('/projects/README.md', '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n')
     this.createFile('/WELCOME_OUTPUT', 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n')
 
-    this.createFile('/home/user/wwwroot/example/index.html',
+    this.createFile('/wwwroot/example/index.html',
 `<h1>Hello, World!</h1>
 <p>Welcome to my first page on the virtual terminal.</p>
-<p>This page is served from <code>~/wwwroot/example/</code>.</p>
+<p>This page is served from <code>/wwwroot/example/</code>.</p>
 `)
 
-    this.createFile('/home/user/wwwroot/example/style.css',
+    this.createFile('/wwwroot/example/style.css',
 `body {
   font-family: system-ui, -apple-system, sans-serif;
   max-width: 640px;

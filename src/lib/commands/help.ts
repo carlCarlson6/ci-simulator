@@ -23,6 +23,7 @@ import { HELP_TEXT as exportHelp } from './export'
 import { HELP_TEXT as loginHelp } from './login'
 import { HELP_TEXT as logoutHelp } from './logout'
 import { HELP_TEXT as whoamiHelp } from './whoami'
+import { HELP_TEXT as resetHelp } from './reset'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -61,6 +62,7 @@ export const handler: CommandHandler = () => ({
       envHelp,
       exportHelp,
       historyHelp,
+      resetHelp,
       themeHelp,
       '  man <command>         Show manual page',
       '',
@@ -68,9 +70,9 @@ export const handler: CommandHandler = () => ({
       cowsayHelp,
       '',
       'Web Pages (wwwroot):',
-      '  Create static pages under ~/wwwroot/<name>/ with index.html',
+      '  Create static pages under /wwwroot/<name>/ with index.html',
       '  and optional style.css, then visit /<name> in the browser.',
-      '  Example: mkdir ~/wwwroot/mypage, then edit the files.',
+      '  Example: mkdir /wwwroot/mypage, then edit the files.',
     ].join('\n'),
   },
 })

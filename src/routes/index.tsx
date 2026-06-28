@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Terminal } from '../components/Terminal'
+import { getUser, getServerState } from '../lib/server-fns'
 import type { ServerStatePayload } from '../lib/serverStorage'
 
 export const Route = createFileRoute('/')({
@@ -7,18 +8,11 @@ export const Route = createFileRoute('/')({
     user: { id: string; username: string } | null
     serverState: ServerStatePayload | null
   }> => {
-    const userRes = await fetch('/api/user')
-    const user = await userRes.json() as { id: string; username: string } | null
-
+    const user = await getUser()
     if (!user) return { user: null, serverState: null }
 
-    try {
-      const stateRes = await fetch('/api/state')
-      const serverState = await stateRes.json() as ServerStatePayload | null
-      return { user, serverState }
-    } catch {
-      return { user, serverState: null }
-    }
+    const serverState = await getServerState()
+    return { user, serverState }
   },
   component: Terminal,
 })

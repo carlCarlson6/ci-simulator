@@ -1,6 +1,6 @@
 // src/lib/auth.ts
 import { useClerk, useUser } from '@clerk/clerk-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTerminalStore } from './terminalStore'
 import { loadStateFromServer } from './serverStorage'
 
@@ -23,6 +23,7 @@ export function useAuthSync() {
   const setUser = useTerminalStore((state) => state.setUser)
   const setUserInfo = useTerminalStore((state) => state.setUserInfo)
   const setAuthCallbacks = useTerminalStore((state) => state.setAuthCallbacks)
+  const wasSignedIn = useRef<boolean | null>(null)
 
   useEffect(() => {
     if (isSignedIn && user) {
@@ -33,14 +34,20 @@ export function useAuthSync() {
         email: user.emailAddresses[0]?.emailAddress || '',
         username: username,
       })
-      loadStateFromServer().then((data) => {
-        if (data) {
-          useTerminalStore.getState().restoreServerState(data)
-        }
-      })
+
+      if (wasSignedIn.current === false) {
+        loadStateFromServer().then((data) => {
+          if (data) {
+            useTerminalStore.getState().restoreServerState(data)
+          }
+        })
+      }
+
+      wasSignedIn.current = true
     } else if (isLoaded) {
       setUser(null)
       setUserInfo(null)
+      wasSignedIn.current = false
     }
   }, [isSignedIn, isLoaded, user, setUser, setUserInfo])
 

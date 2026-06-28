@@ -1,11 +1,11 @@
 import { CommandHandler, CommandEffect } from './types'
 
-export const MANUAL = 'cd\n\nChange the current directory.\n\nUsage: cd <path>\n  cd ~       Go to home directory\n  cd -       Go to previous directory'
+export const MANUAL = 'cd\n\nChange the current directory.\n\nUsage: cd <path>\n  cd ~       Go to root directory\n  cd -       Go to previous directory'
 export const HELP_TEXT = '  cd <path>            Change directory'
 
 export const handler: CommandHandler = (args, context) => {
   if (args.length === 0 || args[0] === '~') {
-    return { success: true, data: { newPath: '/home/user' } }
+    return { success: true, data: { newPath: '/' } }
   }
 
   if (args[0] === '-') {
