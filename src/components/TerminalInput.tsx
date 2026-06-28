@@ -1,6 +1,7 @@
 // src/components/TerminalInput.tsx
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTerminalStore } from '../lib/terminalStore'
+import { soundEngine } from '../lib/soundEngine'
 
 export function TerminalInput() {
   const [input, setInput] = useState('')
@@ -73,6 +74,7 @@ export function TerminalInput() {
         e.preventDefault()
         const candidates = getCompletionCandidates(input)
         if (candidates.length > 0) {
+          soundEngine.play('tabcomplete')
           const completion = candidates[0]
           const parts = input.split(/\s+/)
           if (parts.length <= 1) {
@@ -144,7 +146,7 @@ export function TerminalInput() {
       <textarea
         ref={inputRef}
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => { setInput(e.target.value); soundEngine.play('keystroke') }}
         onKeyDown={handleKeyDown}
         rows={1}
         className="flex-1 bg-transparent text-terminal-green font-mono outline-none border-none ring-0 focus:ring-0 focus:outline-none terminal-input terminal-glow min-h-[1.5em] py-0.5"

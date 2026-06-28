@@ -2,7 +2,7 @@
 
 **Goal:** Add ambient sound effects and UI feedback sounds to the terminal — keystroke click, command execution thud, error beep, and optional background ambient track.
 
-**Status:** 📝 Planned
+**Status:** ✅ Complete
 
 ---
 
@@ -130,7 +130,7 @@ export const HELP_TEXT = '  sound [on|off|volume]  Control sound effects'
 
 ## Status
 
-**Status:** 📝 Planned — not yet implemented.
+**Status:** ✅ Complete — implemented 2026-06-28.
 
 ---
 

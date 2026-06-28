@@ -29,6 +29,7 @@ import { handler as whoamiHandler } from './whoami'
 import { handler as resetHandler, effect as resetEffect } from './reset'
 import { handler as publishHandler, effect as publishEffect } from './publish'
 import { handler as pagesHandler, effect as pagesEffect } from './pages'
+import { handler as soundHandler } from './sound'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -60,6 +61,7 @@ const commands: Record<string, CommandHandler> = {
   reset: resetHandler,
   publish: publishHandler,
   pages: pagesHandler,
+  sound: soundHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {

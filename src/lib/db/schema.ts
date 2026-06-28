@@ -6,6 +6,7 @@ export type ServerStatePayload = {
   currentPath: string
   theme: string
   envVars: Record<string, string>
+  sound?: { enabled: boolean; volume: number }
 }
 
 export const userState = pgTable('virtual_terminal_user_state', {

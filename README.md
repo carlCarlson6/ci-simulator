@@ -213,7 +213,7 @@ The app will be available at `http://localhost:3000` (or the next available port
 - [ ] `figlet` — ASCII block letters
 - [ ] Terminal games (`snake`, `2048`, `tetris`)
 - [ ] Multi-tab sessions
-- [ ] Sound effects
+- [x] Sound effects — `sound [on|off|volume <n>]` command, Web Audio API synthesis ([F006](plans/future/F006-sound-effects.md))
 - [ ] Additional server functions (`date`, `hostname` via `createServerFn`)
 - [ ] API routes for external consumers
 
