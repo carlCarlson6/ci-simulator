@@ -33,7 +33,18 @@ export async function syncStateToServer(): Promise<void> {
   let envVars: Record<string, string> = {}
   try { envVars = JSON.parse(envVarsRaw || '{}') } catch { /* ignore */ }
 
-  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
+  let sound: ServerStatePayload['sound']
+  try {
+    const raw = localStorage.getItem('ci-simulator-sound')
+    if (raw) {
+      const s = JSON.parse(raw)
+      if (typeof s.enabled === 'boolean' && typeof s.volume === 'number') {
+        sound = { enabled: s.enabled, volume: s.volume }
+      }
+    }
+  } catch { /* ignore */ }
+
+  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars, sound } })
 }
 
 export async function loadStateFromServer(): Promise<ServerStatePayload | null> {

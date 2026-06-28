@@ -298,6 +298,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     const fileSystem = createFileSystemFromSerialized(data.fileSystem)
     persistState(fileSystem, data.currentPath, data.theme, data.envVars)
 
+    if (data.sound) {
+      soundEngine.setEnabled(data.sound.enabled)
+      soundEngine.setVolume(data.sound.volume)
+      localStorage.setItem('ci-simulator-sound', JSON.stringify(data.sound))
+    }
+
     set({
       fileSystem,
       currentPath: data.currentPath,
