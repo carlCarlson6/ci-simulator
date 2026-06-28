@@ -4,7 +4,7 @@ import { getCookie } from '@tanstack/react-start/server'
 import { eq } from 'drizzle-orm'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { userState } from './db/schema'
+import { userState, staticPages } from './db/schema'
 import type { ServerStatePayload } from './db/schema'
 
 export const getUser = createServerFn({ method: 'GET' }).handler(async () => {
@@ -50,3 +50,45 @@ export const getServerState = createServerFn({ method: 'GET' }).handler(async ()
     return null;
   }
 })
+
+type PageContent = { htmlContent: string; cssContent: string } | null
+
+export const getPublishedPage = createServerFn({ method: 'GET' })
+  .validator((pageName: string) => pageName)
+  .handler(async ({ data: pageName }) => {
+    try {
+      if (!pageName || pageName.includes('..') || pageName.includes('/') || pageName.includes('\0')) {
+        return null
+      }
+
+      const client = postgres(process.env.DATABASE_URL!)
+      const db = drizzle(client, { schema: { userState, staticPages } })
+
+      try {
+        const records = await db.select().from(staticPages).where(eq(staticPages.pageName, pageName))
+        if (records.length === 0) return null
+
+        const record = records[0]
+        const stateRows = await db.select().from(userState).where(eq(userState.userId, record.ownerUserId))
+        if (stateRows.length === 0) return null
+
+        const payload = stateRows[0].data as ServerStatePayload
+        const fileSystem = payload.fileSystem
+        const dirPrefix = `/wwwroot/${pageName}`
+
+        const htmlEntry = fileSystem.find(([path]) => path === `${dirPrefix}/index.html`)
+        if (!htmlEntry || htmlEntry[1].type !== 'file') return null
+
+        const htmlContent = htmlEntry[1].content || ''
+        const cssEntry = fileSystem.find(([path]) => path === `${dirPrefix}/style.css`)
+        const cssContent = cssEntry && cssEntry[1].type === 'file' ? cssEntry[1].content || '' : ''
+
+        return { htmlContent, cssContent } satisfies PageContent
+      } finally {
+        await client.end()
+      }
+    } catch (e) {
+      console.error('[getPublishedPage] error:', e)
+      return null
+    }
+  })

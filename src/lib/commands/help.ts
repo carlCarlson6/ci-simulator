@@ -24,6 +24,7 @@ import { HELP_TEXT as loginHelp } from './login'
 import { HELP_TEXT as logoutHelp } from './logout'
 import { HELP_TEXT as whoamiHelp } from './whoami'
 import { HELP_TEXT as resetHelp } from './reset'
+import { HELP_TEXT as publishHelp } from './publish'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -70,9 +71,9 @@ export const handler: CommandHandler = () => ({
       cowsayHelp,
       '',
       'Web Pages (wwwroot):',
-      '  Create static pages under /wwwroot/<name>/ with index.html',
-      '  and optional style.css, then visit /<name> in the browser.',
-      '  Example: mkdir /wwwroot/mypage, then edit the files.',
+      publishHelp,
+      '  Create pages under /wwwroot/<name>/ with index.html and',
+      '  optional style.css, then publish to make them public.',
     ].join('\n'),
   },
 })

@@ -24,6 +24,7 @@ export type CommandResult = {
     markdownFilePath?: string
     markdownContent?: string
     exportVars?: Record<string, string>
+    publishPageName?: string
   }
 }
 

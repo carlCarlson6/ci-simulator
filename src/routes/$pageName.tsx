@@ -1,51 +1,40 @@
-import { useEffect, useRef, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { useTerminalStore } from '../lib/terminalStore'
+import { createFileRoute, notFound } from '@tanstack/react-router'
+import { getPublishedPage } from '../lib/server-fns'
 
 export const Route = createFileRoute('/$pageName')({
+  loader: async ({ params }) => {
+    const { pageName } = params
+
+    if (!pageName || pageName.includes('..') || pageName.includes('/') || pageName.includes('\0')) {
+      throw notFound()
+    }
+
+    const content = await getPublishedPage({ data: pageName })
+    if (!content) {
+      throw notFound()
+    }
+
+    return { ...content, pageName }
+  },
   component: PageRoute,
+  notFoundComponent: NotFound,
 })
 
 function PageRoute() {
-  const { pageName } = Route.useParams()
+  const { htmlContent, cssContent, pageName } = Route.useLoaderData()
 
-  const fileSystem = useTerminalStore((s) => s.fileSystem)
-  const initialize = useTerminalStore((s) => s.initialize)
-  const [ready, setReady] = useState(false)
-  const initRef = useRef(false)
-
-  useEffect(() => {
-    if (!initRef.current) {
-      initRef.current = true
-      if (fileSystem.entries.size <= 1) {
-        initialize()
-      }
-    }
-    setReady(true)
-  }, [])
-
-  if (!pageName || pageName.includes('..') || pageName.includes('/') || pageName.includes('\0')) {
-    return <NotFound />
-  }
-
-  if (!ready) return null
-
-  const dir = `/wwwroot/${pageName}`
-  const dirEntry = fileSystem.entries.get(dir)
-  if (!dirEntry || dirEntry.type !== 'directory') {
-    return <NotFound />
-  }
-
-  const htmlEntry = fileSystem.entries.get(`${dir}/index.html`)
-  if (!htmlEntry || htmlEntry.type !== 'file') {
-    return <NotFound />
-  }
-
-  const htmlContent = htmlEntry.content || ''
-  const cssEntry = fileSystem.entries.get(`${dir}/style.css`)
-  const cssContent = cssEntry?.type === 'file' ? cssEntry.content || '' : ''
-
-  const srcdoc = buildPage(htmlContent, cssContent)
+  const styleTag = cssContent ? `\n<style>${cssContent}</style>\n` : ''
+  const srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>body{background:#fff}</style>${styleTag}
+</head>
+<body>
+${htmlContent}
+</body>
+</html>`
 
   return (
     <div style={{ height: '100vh', width: '100vw', margin: 0, position: 'relative', background: '#fff' }}>
@@ -57,21 +46,6 @@ function PageRoute() {
       />
     </div>
   )
-}
-
-function buildPage(html: string, css: string): string {
-  const styleTag = css ? `\n<style>${css}</style>\n` : ''
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>body{background:#fff}</style>${styleTag}
-</head>
-<body>
-${html}
-</body>
-</html>`
 }
 
 function NotFound() {

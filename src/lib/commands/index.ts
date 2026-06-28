@@ -27,6 +27,7 @@ import { handler as loginHandler } from './login'
 import { handler as logoutHandler } from './logout'
 import { handler as whoamiHandler } from './whoami'
 import { handler as resetHandler, effect as resetEffect } from './reset'
+import { handler as publishHandler, effect as publishEffect } from './publish'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -56,6 +57,7 @@ const commands: Record<string, CommandHandler> = {
   logout: logoutHandler,
   whoami: whoamiHandler,
   reset: resetHandler,
+  publish: publishHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {
@@ -66,6 +68,7 @@ const commandEffects: Record<string, CommandEffect> = {
   md: mdEffect,
   export: exportEffect,
   reset: resetEffect,
+  publish: publishEffect,
 }
 
 export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'
