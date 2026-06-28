@@ -81,7 +81,17 @@ export const loadServerStateFn = createServerFn({ method: 'GET' })
       return await db.select().from(userState).where(eq(userState.userId, userId))
     })
 
-    if (rows.length === 0) return null
+    if (rows.length === 0) {
+      const defaultData = createDefaultServerState()
+      await withDb(async (db) => {
+        await db.insert(userState).values({
+          userId,
+          data: defaultData,
+          updatedAt: new Date(),
+        })
+      })
+      return defaultData
+    }
     return rows[0].data
   })
 
@@ -103,6 +113,29 @@ export async function syncStateToServer(): Promise<void> {
   try { envVars = JSON.parse(envVarsRaw || '{}') } catch { /* ignore */ }
 
   await saveServerStateFn({ data: { v: 1, fileSystem, currentPath, theme, envVars } })
+}
+
+function createDefaultServerState(): ServerStatePayload {
+  return {
+    v: 1,
+    fileSystem: [
+      ['/', { type: 'directory' }],
+      ['/home', { type: 'directory' }],
+      ['/home/user', { type: 'directory' }],
+      ['/home/user/projects', { type: 'directory' }],
+      ['/etc', { type: 'directory' }],
+      ['/home/user/wwwroot', { type: 'directory' }],
+      ['/home/user/wwwroot/example', { type: 'directory' }],
+      ['/home/user/welcome.txt', { type: 'file', content: 'Welcome to the Terminal Simulator!\n\nType `help` to see available commands.\n' }],
+      ['/home/user/projects/README.md', { type: 'file', content: '# Project: Neural Link\n\nA neural interface for direct brain-computer communication.\n' }],
+      ['/WELCOME_OUTPUT', { type: 'file', content: 'Terminal Simulator v1.0.0\nType `help` to see available commands.\n' }],
+      ['/home/user/wwwroot/example/index.html', { type: 'file', content: '<h1>Hello, World!</h1>\n<p>Welcome to my first page on the virtual terminal.</p>\n<p>This page is served from <code>~/wwwroot/example/</code>.</p>\n' }],
+      ['/home/user/wwwroot/example/style.css', { type: 'file', content: 'body {\n  font-family: system-ui, -apple-system, sans-serif;\n  max-width: 640px;\n  margin: 4rem auto;\n  padding: 0 1rem;\n  background: #faf9f6;\n  color: #1a1a1a;\n  line-height: 1.6;\n}\nh1 { color: #2563eb; }\ncode { background: #e8e8e8; padding: 0.15rem 0.4rem; border-radius: 4px; }\n' }],
+    ],
+    currentPath: '/home/user',
+    theme: 'cyberpunk',
+    envVars: {},
+  }
 }
 
 function isValidPayload(data: unknown): data is ServerStatePayload {
