@@ -1,4 +1,5 @@
 import { FileSystem } from '../fileSystem'
+import type { Task, TaskOp } from '../tasks'
 
 export type CommandContext = {
   fileSystem: FileSystem
@@ -9,6 +10,7 @@ export type CommandContext = {
   setTheme: (name: string) => void
   envVars: Record<string, string>
   user?: string | null
+  tasks: Task[]
 }
 
 export type CommandResult = {
@@ -26,6 +28,11 @@ export type CommandResult = {
     exportVars?: Record<string, string>
     publishPageName?: string
     listPages?: boolean
+    openTasksModal?: boolean
+    taskOp?: TaskOp
+    openNotesModal?: boolean
+    notesMkdirPath?: string
+    notesRemovePath?: string
   }
 }
 
@@ -42,6 +49,11 @@ export type CommandEffectContext = {
   closeMarkdown: () => void
   envVars: Record<string, string>
   setEnvVar: (key: string, value: string) => void
+  openTasks: () => void
+  applyTaskOp: (op: TaskOp) => string
+  openNotes: () => void
+  notesMkdir: (path: string) => { ok: boolean; message: string }
+  notesRemove: (path: string) => { ok: boolean; message: string }
 }
 
 export type CommandEffect = (

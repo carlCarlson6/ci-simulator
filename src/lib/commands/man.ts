@@ -22,6 +22,8 @@ import { MANUAL as exportManual } from './export'
 import { MANUAL as publishManual } from './publish'
 import { MANUAL as pagesManual } from './pages'
 import { MANUAL as soundManual } from './sound'
+import { MANUAL as tasksManual } from './tasks'
+import { MANUAL as notesManual } from './notes'
 
 const manPages: Record<string, string> = {
   help: 'help\n\nShow available commands and brief descriptions.\n\nUsage: help',
@@ -49,6 +51,8 @@ const manPages: Record<string, string> = {
   publish: publishManual,
   pages: pagesManual,
   sound: soundManual,
+  tasks: tasksManual,
+  notes: notesManual,
 }
 
 export const MANUAL = 'man\n\nDisplay manual pages for commands.\n\nUsage: man <command>'

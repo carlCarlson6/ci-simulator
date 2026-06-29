@@ -44,7 +44,20 @@ export async function syncStateToServer(): Promise<void> {
     }
   } catch { /* ignore */ }
 
-  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars, sound } })
+  let tasks: ServerStatePayload['tasks']
+  let nextTaskId: ServerStatePayload['nextTaskId']
+  try {
+    const raw = localStorage.getItem('ci-simulator:tasks')
+    if (raw) {
+      const t = JSON.parse(raw)
+      if (Array.isArray(t.tasks) && typeof t.nextTaskId === 'number') {
+        tasks = t.tasks
+        nextTaskId = t.nextTaskId
+      }
+    }
+  } catch { /* ignore */ }
+
+  await saveServerState({ data: { v: 1, fileSystem, currentPath, theme, envVars, sound, tasks, nextTaskId } })
 }
 
 export async function loadStateFromServer(): Promise<ServerStatePayload | null> {

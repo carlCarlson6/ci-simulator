@@ -30,6 +30,8 @@ import { handler as resetHandler, effect as resetEffect } from './reset'
 import { handler as publishHandler, effect as publishEffect } from './publish'
 import { handler as pagesHandler, effect as pagesEffect } from './pages'
 import { handler as soundHandler } from './sound'
+import { handler as tasksHandler, effect as tasksEffect } from './tasks'
+import { handler as notesHandler, effect as notesEffect } from './notes'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -62,6 +64,8 @@ const commands: Record<string, CommandHandler> = {
   publish: publishHandler,
   pages: pagesHandler,
   sound: soundHandler,
+  tasks: tasksHandler,
+  notes: notesHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {
@@ -74,6 +78,8 @@ const commandEffects: Record<string, CommandEffect> = {
   reset: resetEffect,
   publish: publishEffect,
   pages: pagesEffect,
+  tasks: tasksEffect,
+  notes: notesEffect,
 }
 
 export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'
@@ -122,6 +128,18 @@ export function getCompletionCandidates(
   if (command === 'env' && parts.length === 2) {
     const partial = parts[1]
     return Object.keys(context.envVars).filter((key) => key.startsWith(partial))
+  }
+
+  if (command === 'tasks' && parts.length === 2) {
+    const partial = parts[1]
+    return ['ls', 'add', 'done', 'status', 'edit', 'attach', 'detach', 'notes', 'rm'].filter(
+      (s) => s.startsWith(partial)
+    )
+  }
+
+  if (command === 'notes' && parts.length === 2) {
+    const partial = parts[1]
+    return ['ls', 'new', 'open', 'edit', 'mkdir', 'rm'].filter((s) => s.startsWith(partial))
   }
 
   const partial = parts[parts.length - 1]

@@ -2,12 +2,14 @@
 import { create } from 'zustand'
 import { FileSystem, createFileSystemFromSerialized } from './fileSystem'
 import { executeCommand, getCompletionCandidates, getCommandEffect } from './commands/index'
-import { loadFileSystem } from './persistence'
+import { loadFileSystem, loadTasks, saveTasks } from './persistence'
 import { persistState, syncToServerIfUser } from './sync'
 import { getTheme } from './themes'
 import { getPromptPrefix } from './auth'
 import type { ServerStatePayload } from './serverStorage'
 import { soundEngine } from './soundEngine'
+import type { Task, TaskOp } from './tasks'
+import { reduceTaskOp, NOTES_DIR } from './tasks'
 
 export type TerminalLine = {
   id: string
@@ -44,6 +46,11 @@ type TerminalState = {
   user: string | null
   userInfo: UserInfo | null
   authCallbacks: AuthCallbacks
+  tasks: Task[]
+  nextTaskId: number
+  tasksOpen: boolean
+  notesOpen: boolean
+  fsVersion: number
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -62,6 +69,15 @@ type TerminalState = {
   setUserInfo: (userInfo: UserInfo | null) => void
   setAuthCallbacks: (callbacks: AuthCallbacks) => void
   restoreServerState: (data: ServerStatePayload) => void
+  openTasks: () => void
+  closeTasks: () => void
+  applyTaskOp: (op: TaskOp) => string
+  openTaskNote: (path: string) => void
+  openNotes: () => void
+  closeNotes: () => void
+  notesMkdir: (path: string) => { ok: boolean; message: string }
+  notesRemove: (path: string) => { ok: boolean; message: string }
+  openNoteFile: (path: string) => void
 }
 
 let lineId = 0
@@ -84,6 +100,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   user: null,
   userInfo: null,
   authCallbacks: {},
+  tasks: [],
+  nextTaskId: 1,
+  tasksOpen: false,
+  notesOpen: false,
+  fsVersion: 0,
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -116,6 +137,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       }
     } catch { /* ignore corrupt data */ }
 
+    const tasksState = loadTasks()
+
     set({
       fileSystem: fileSystem,
       lines: [],
@@ -124,6 +147,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       previousPath: startPath,
       currentTheme: initialTheme,
       envVars,
+      tasks: tasksState.tasks,
+      nextTaskId: tasksState.nextTaskId,
     })
 
     try {
@@ -158,6 +183,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       setTheme: get().setTheme,
       envVars: state.envVars,
       user: state.user,
+      tasks: state.tasks,
     })
 
     // Record command in history AFTER execution
@@ -182,6 +208,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
         closeMarkdown: () => get().closeMarkdown(),
         envVars: state.envVars,
         setEnvVar: (key, value) => get().setEnvVar(key, value),
+        openTasks: () => get().openTasks(),
+        applyTaskOp: (op) => get().applyTaskOp(op),
+        openNotes: () => get().openNotes(),
+        notesMkdir: (path) => get().notesMkdir(path),
+        notesRemove: (path) => get().notesRemove(path),
       })
     }
 
@@ -271,6 +302,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       editorOpen: false,
       editorFilePath: null,
       editorContent: null,
+      fsVersion: get().fsVersion + 1,
     })
     get().addLine({ type: 'output', content: `Saved ${st.editorFilePath}` })
     get().addLine({ type: 'prompt', content: get().getPrompt() })
@@ -304,15 +336,110 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       localStorage.setItem('ci-simulator-sound', JSON.stringify(data.sound))
     }
 
+    const tasks = data.tasks ?? []
+    const nextTaskId = data.nextTaskId ?? tasks.reduce((m, t) => Math.max(m, t.id + 1), 1)
+    saveTasks({ tasks, nextTaskId })
+
     set({
       fileSystem,
       currentPath: data.currentPath,
       previousPath: data.currentPath,
       currentTheme: data.theme,
       envVars: data.envVars,
+      tasks,
+      nextTaskId,
     })
 
     get().addLine({ type: 'system', content: 'State restored from server.' })
+  },
+
+  openTasks: () => {
+    set({ tasksOpen: true })
+  },
+
+  closeTasks: () => {
+    set({ tasksOpen: false })
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
+  },
+
+  applyTaskOp: (op: TaskOp) => {
+    const st = get()
+    const { state: next, message } = reduceTaskOp(
+      { tasks: st.tasks, nextTaskId: st.nextTaskId },
+      op
+    )
+    set({ tasks: next.tasks, nextTaskId: next.nextTaskId })
+    saveTasks(next)
+    syncToServerIfUser(st.user).catch(() => {
+      get().addLine({ type: 'error', content: 'State could not be saved to server.' })
+    })
+    return message
+  },
+
+  openTaskNote: (path: string) => {
+    const st = get()
+    try {
+      const content = st.fileSystem.readFile(path)
+      get().openMarkdown(path, content)
+    } catch {
+      get().addLine({ type: 'error', content: `tasks: cannot open note ${path}` })
+    }
+  },
+
+  openNotes: () => {
+    const st = get()
+    if (!st.fileSystem.exists(NOTES_DIR)) {
+      st.fileSystem.createDirectory(NOTES_DIR)
+      persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+      syncToServerIfUser(st.user).catch(() => {})
+      set({ fsVersion: st.fsVersion + 1 })
+    }
+    set({ notesOpen: true })
+  },
+
+  closeNotes: () => {
+    set({ notesOpen: false })
+    get().addLine({ type: 'prompt', content: get().getPrompt() })
+  },
+
+  notesMkdir: (path: string) => {
+    const st = get()
+    try {
+      st.fileSystem.createDirectory(path)
+    } catch (e) {
+      return { ok: false, message: e instanceof Error ? e.message : 'notes: mkdir failed' }
+    }
+    persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+    syncToServerIfUser(st.user).catch(() => {
+      get().addLine({ type: 'error', content: 'State could not be saved to server.' })
+    })
+    set({ fsVersion: get().fsVersion + 1 })
+    return { ok: true, message: `Created ${path}` }
+  },
+
+  notesRemove: (path: string) => {
+    const st = get()
+    try {
+      st.fileSystem.removeEntry(path, true)
+    } catch (e) {
+      return { ok: false, message: e instanceof Error ? e.message : 'notes: remove failed' }
+    }
+    persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+    syncToServerIfUser(st.user).catch(() => {
+      get().addLine({ type: 'error', content: 'State could not be saved to server.' })
+    })
+    set({ fsVersion: get().fsVersion + 1 })
+    return { ok: true, message: `Removed ${path}` }
+  },
+
+  openNoteFile: (path: string) => {
+    const st = get()
+    try {
+      const content = st.fileSystem.readFile(path)
+      get().openMarkdown(path, content)
+    } catch {
+      get().addLine({ type: 'error', content: `notes: cannot open ${path}` })
+    }
   },
 
   openMarkdown: (filePath: string, content: string) => {

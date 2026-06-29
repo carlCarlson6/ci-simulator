@@ -1,4 +1,5 @@
 import { pgTable, text, jsonb, timestamp, serial } from 'drizzle-orm/pg-core'
+import type { Task } from '../tasks'
 
 export type ServerStatePayload = {
   v: 1
@@ -7,6 +8,8 @@ export type ServerStatePayload = {
   theme: string
   envVars: Record<string, string>
   sound?: { enabled: boolean; volume: number }
+  tasks?: Task[]
+  nextTaskId?: number
 }
 
 export const userState = pgTable('virtual_terminal_user_state', {

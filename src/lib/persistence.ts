@@ -1,8 +1,11 @@
 // src/lib/persistence.ts
 import { FileSystem, FileSystemEntry } from './fileSystem'
+import type { TasksState } from './tasks'
+import { emptyTasksState } from './tasks'
 
 const STORAGE_KEY = 'ci-simulator:filesystem'
 const STORAGE_VERSION = 1
+const TASKS_KEY = 'ci-simulator:tasks'
 
 type PersistedFileSystem = {
   version: number
@@ -54,5 +57,27 @@ export function clearFileSystemStorage(): void {
     localStorage.removeItem(STORAGE_KEY)
   } catch {
     // Ignore
+  }
+}
+
+export function saveTasks(state: TasksState): void {
+  try {
+    localStorage.setItem(TASKS_KEY, JSON.stringify(state))
+  } catch {
+    // Silently ignore quota errors or private-mode restrictions
+  }
+}
+
+export function loadTasks(): TasksState {
+  try {
+    const raw = localStorage.getItem(TASKS_KEY)
+    if (!raw) return emptyTasksState()
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed.tasks) || typeof parsed.nextTaskId !== 'number') {
+      return emptyTasksState()
+    }
+    return { tasks: parsed.tasks, nextTaskId: parsed.nextTaskId }
+  } catch {
+    return emptyTasksState()
   }
 }

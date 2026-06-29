@@ -27,6 +27,8 @@ import { HELP_TEXT as resetHelp } from './reset'
 import { HELP_TEXT as publishHelp } from './publish'
 import { HELP_TEXT as pagesHelp } from './pages'
 import { HELP_TEXT as soundHelp } from './sound'
+import { HELP_TEXT as tasksHelp } from './tasks'
+import { HELP_TEXT as notesHelp } from './notes'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -57,6 +59,12 @@ export const handler: CommandHandler = () => ({
       loginHelp,
       logoutHelp,
       whoamiHelp,
+      '',
+      'Productivity:',
+      tasksHelp,
+      notesHelp,
+      '  Notes are files under /notes-app. Tasks track title, status,',
+      '  due date and attached notes.',
       '',
       'General Commands:',
       '  help                  Show this help message',
