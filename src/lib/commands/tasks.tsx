@@ -225,16 +225,18 @@ import { useEffect, useState } from 'react'
 import { useTerminalStore } from '../terminalStore'
 import { isOverdue, nextStatus, sortedTasks } from '../tasks'
 
-type Mode = null | 'add' | 'edit' | 'attach' | 'confirm'
+type Mode = null | 'add' | 'edit' | 'confirm'
 
 export function TasksModal() {
   const tasksOpen = useTerminalStore((s) => s.tasksOpen)
   const markdownOpen = useTerminalStore((s) => s.markdownOpen)
+  const notePickerOpen = useTerminalStore((s) => s.notePickerOpen)
   const tasks = useTerminalStore((s) => s.tasks)
   const fileSystem = useTerminalStore((s) => s.fileSystem)
   const applyTaskOp = useTerminalStore((s) => s.applyTaskOp)
   const closeTasks = useTerminalStore((s) => s.closeTasks)
   const openTaskNote = useTerminalStore((s) => s.openTaskNote)
+  const openNotePicker = useTerminalStore((s) => s.openNotePicker)
 
   const [pane, setPane] = useState<'tasks' | 'notes'>('tasks')
   const [taskIdx, setTaskIdx] = useState(0)
@@ -261,7 +263,7 @@ export function TasksModal() {
     }
   }, [tasksOpen])
 
-  const isTextMode = mode === 'add' || mode === 'edit' || mode === 'attach'
+  const isTextMode = mode === 'add' || mode === 'edit'
 
   function startEdit() {
     if (!selected) return
@@ -287,13 +289,6 @@ export function TasksModal() {
         title: parsed.title || undefined,
         dueDate: parsed.clearDue ? null : parsed.due,
       })
-    } else if (mode === 'attach' && selected) {
-      const r = resolveNotePath(fileSystem, input.trim())
-      if ('error' in r) return setError(r.error)
-      const entry = fileSystem.getEntry(r.path)
-      if (!entry) return setError(`${input.trim()}: no such note`)
-      if (entry.type === 'directory') return setError(`${input.trim()}: is a directory`)
-      applyTaskOp({ kind: 'attach', id: selected.id, path: r.path })
     }
     setMode(null)
     setInput('')
@@ -302,7 +297,7 @@ export function TasksModal() {
   // Global key handling (navigation + shortcuts), disabled while typing or when
   // a note is open on top of the board.
   useEffect(() => {
-    if (!tasksOpen || markdownOpen) return
+    if (!tasksOpen || markdownOpen || notePickerOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (isTextMode) return // the input element owns these keys
 
@@ -381,9 +376,7 @@ export function TasksModal() {
         }
         if (key === 'n') {
           e.preventDefault()
-          setInput('')
-          setError('')
-          setMode('attach')
+          openNotePicker(selected.id)
           return
         }
         if (key === 'd') {
@@ -418,6 +411,7 @@ export function TasksModal() {
   }, [
     tasksOpen,
     markdownOpen,
+    notePickerOpen,
     mode,
     isTextMode,
     pane,
@@ -428,6 +422,7 @@ export function TasksModal() {
     applyTaskOp,
     closeTasks,
     openTaskNote,
+    openNotePicker,
   ])
 
   if (!tasksOpen) return null
@@ -552,7 +547,6 @@ export function TasksModal() {
             <label className="text-terminal-green-dark mr-2">
               {mode === 'add' && 'New task (title [--due YYYY-MM-DD]):'}
               {mode === 'edit' && 'Edit (title [--due YYYY-MM-DD|none]):'}
-              {mode === 'attach' && `Attach note (path under ${NOTES_DIR}):`}
             </label>
             <input
               autoFocus

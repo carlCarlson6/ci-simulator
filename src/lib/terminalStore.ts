@@ -51,6 +51,8 @@ type TerminalState = {
   tasksOpen: boolean
   notesOpen: boolean
   fsVersion: number
+  notePickerOpen: boolean
+  notePickerTaskId: number | null
 
   initialize: () => void
   executeCommand: (input: string) => void
@@ -78,6 +80,8 @@ type TerminalState = {
   notesMkdir: (path: string) => { ok: boolean; message: string }
   notesRemove: (path: string) => { ok: boolean; message: string }
   openNoteFile: (path: string) => void
+  openNotePicker: (taskId: number) => void
+  closeNotePicker: () => void
 }
 
 let lineId = 0
@@ -105,6 +109,8 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   tasksOpen: false,
   notesOpen: false,
   fsVersion: 0,
+  notePickerOpen: false,
+  notePickerTaskId: null,
 
   initialize: () => {
     const stored = loadFileSystem()
@@ -440,6 +446,21 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     } catch {
       get().addLine({ type: 'error', content: `notes: cannot open ${path}` })
     }
+  },
+
+  openNotePicker: (taskId: number) => {
+    const st = get()
+    if (!st.fileSystem.exists(NOTES_DIR)) {
+      st.fileSystem.createDirectory(NOTES_DIR)
+      persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+      syncToServerIfUser(st.user).catch(() => {})
+      set({ fsVersion: st.fsVersion + 1 })
+    }
+    set({ notePickerOpen: true, notePickerTaskId: taskId })
+  },
+
+  closeNotePicker: () => {
+    set({ notePickerOpen: false, notePickerTaskId: null })
   },
 
   openMarkdown: (filePath: string, content: string) => {

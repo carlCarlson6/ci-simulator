@@ -9,6 +9,7 @@ import { EditorModal } from '~/lib/commands/edit'
 import { MarkdownModal } from '~/lib/commands/md'
 import { TasksModal } from '~/lib/commands/tasks'
 import { NotesModal } from '~/lib/commands/notes'
+import { NotePickerModal } from '~/lib/commands/notePicker'
 import { Route } from '../routes/index'
 
 export function Terminal() {
@@ -93,6 +94,7 @@ export function Terminal() {
       <EditorModal />
       <TasksModal />
       <NotesModal />
+      <NotePickerModal />
       <MarkdownModal />
       {/* Scanlines overlay */}
       <div className="absolute inset-0 pointer-events-none z-20 terminal-scanlines opacity-20" />
