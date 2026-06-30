@@ -157,7 +157,7 @@ function isBlockBoundary(line: string): boolean {
   return /^#{1,3}\s/.test(line) || line === '---' || line === '```'
 }
 
-function markdownParser(content: string): React.ReactNode[] {
+export function markdownParser(content: string): React.ReactNode[] {
   if (!content.trim()) return []
 
   const rawLines = content.split('\n')

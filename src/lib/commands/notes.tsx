@@ -132,6 +132,7 @@ export const effect: CommandEffect = (result, context) => {
 
 import { useEffect, useState } from 'react'
 import { useTerminalStore } from '../terminalStore'
+import { markdownParser } from './md'
 
 type Mode = null | 'new' | 'mkdir' | 'confirm'
 
@@ -169,6 +170,16 @@ export function NotesModal() {
   }
   const sIdx = entries.length ? Math.min(selIdx, entries.length - 1) : 0
   const selected = entries[sIdx]
+
+  // Read the highlighted file's content for the live preview pane.
+  let previewContent: string | null = null
+  if (selected && !selected.isDir) {
+    try {
+      previewContent = fileSystem.readFile(join(cwd, selected.name))
+    } catch {
+      previewContent = null
+    }
+  }
 
   useEffect(() => {
     if (notesOpen) {
@@ -313,7 +324,7 @@ export function NotesModal() {
       onClick={() => closeNotes()}
     >
       <div
-        className="flex flex-col w-[90vw] h-[85vh] max-w-3xl bg-terminal-bg border-2 rounded-lg overflow-hidden"
+        className="flex flex-col w-[90vw] h-[85vh] max-w-5xl bg-terminal-bg border-2 rounded-lg overflow-hidden"
         style={{
           borderColor: border,
           boxShadow: '0 0 30px color-mix(in srgb, var(--color-terminal-green) 15%, transparent)',
@@ -329,8 +340,12 @@ export function NotesModal() {
           <span className="text-terminal-green-dark text-xs font-mono">{breadcrumb}</span>
         </div>
 
+        {/* Body: listing + preview */}
+        <div className="flex flex-1 min-h-0">
         {/* Listing */}
-        <div className="flex-1 overflow-y-auto p-2 terminal-scrollbar font-mono text-sm">
+        <div className="w-2/5 overflow-y-auto p-2 terminal-scrollbar font-mono text-sm border-r"
+          style={{ borderRightColor: 'color-mix(in srgb, var(--color-terminal-green) 20%, transparent)' }}
+        >
           {cwd !== NOTES_DIR && (
             <div className="px-2 py-1 text-terminal-green-dark">../</div>
           )}
@@ -358,6 +373,27 @@ export function NotesModal() {
               )
             })
           )}
+        </div>
+
+        {/* Preview */}
+        <div className="flex-1 overflow-y-auto p-4 terminal-scrollbar font-mono text-sm terminal-glow min-w-0">
+          {selected && selected.isDir ? (
+            <div className="text-terminal-green-dark italic">
+              <span className="text-terminal-cyan">{selected.name}/</span> — folder. Press{' '}
+              <b className="text-terminal-green">enter</b> to open.
+            </div>
+          ) : previewContent !== null ? (
+            previewContent.trim() === '' ? (
+              <div className="text-terminal-green-dark italic">Empty note.</div>
+            ) : (
+              markdownParser(previewContent)
+            )
+          ) : (
+            <div className="text-terminal-green-dark italic">
+              {entries.length === 0 ? 'No note selected.' : 'Select a note to preview.'}
+            </div>
+          )}
+        </div>
         </div>
 
         {/* Input row */}
