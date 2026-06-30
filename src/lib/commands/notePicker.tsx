@@ -4,12 +4,13 @@
 // attach it to the task that opened the picker.
 import { useEffect, useMemo, useState } from 'react'
 import { useTerminalStore } from '../terminalStore'
-import { NOTES_DIR } from '../tasks'
+import { NOTES_DIR, noteFileName, taskNotePath } from '../tasks'
 
 type Item =
   | { kind: 'up' }
   | { kind: 'dir'; name: string; path: string }
   | { kind: 'file'; name: string; path: string; rel: string }
+  | { kind: 'create'; fileName: string; path: string }
 
 function join(dir: string, name: string): string {
   return dir === '/' ? `/${name}` : `${dir}/${name}`
@@ -18,9 +19,12 @@ function join(dir: string, name: string): string {
 export function NotePickerModal() {
   const open = useTerminalStore((s) => s.notePickerOpen)
   const taskId = useTerminalStore((s) => s.notePickerTaskId)
+  const tasks = useTerminalStore((s) => s.tasks)
   const fsVersion = useTerminalStore((s) => s.fsVersion)
   const fileSystem = useTerminalStore((s) => s.fileSystem)
   const applyTaskOp = useTerminalStore((s) => s.applyTaskOp)
+  const createNote = useTerminalStore((s) => s.createNote)
+  const openEditor = useTerminalStore((s) => s.openEditor)
   const close = useTerminalStore((s) => s.closeNotePicker)
 
   const [query, setQuery] = useState('')
@@ -36,6 +40,7 @@ export function NotePickerModal() {
   }, [open])
 
   const q = query.trim().toLowerCase()
+  const task = tasks.find((t) => t.id === taskId)
 
   const items = useMemo<Item[]>(() => {
     void fsVersion
@@ -48,7 +53,12 @@ export function NotePickerModal() {
           matches.push({ kind: 'file', name: p.split('/').pop() || p, path: p, rel })
         }
       }
-      return matches.slice(0, 100)
+      const result = matches.slice(0, 100)
+      const fileName = noteFileName(query)
+      if (fileName && task) {
+        result.push({ kind: 'create', fileName, path: taskNotePath(task.title, fileName) })
+      }
+      return result
     }
 
     const list: Item[] = []
@@ -67,7 +77,7 @@ export function NotePickerModal() {
     }
     return list
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, cwd, fileSystem, fsVersion])
+  }, [q, query, cwd, fileSystem, fsVersion, task])
 
   const sIdx = items.length ? Math.min(selIdx, items.length - 1) : 0
   const selected = items[sIdx]
@@ -80,6 +90,18 @@ export function NotePickerModal() {
     } else if (item.kind === 'dir') {
       setCwd(item.path)
       setSelIdx(0)
+    } else if (item.kind === 'create') {
+      const r = createNote(item.path)
+      if (!r.ok) return
+      if (taskId !== null) applyTaskOp({ kind: 'attach', id: taskId, path: item.path })
+      let content = ''
+      try {
+        content = fileSystem.readFile(item.path)
+      } catch {
+        /* freshly created, empty */
+      }
+      close()
+      openEditor(item.path, content)
     } else {
       if (taskId !== null) applyTaskOp({ kind: 'attach', id: taskId, path: item.path })
       close()
@@ -181,6 +203,18 @@ export function NotePickerModal() {
                   </div>
                 )
               }
+              if (item.kind === 'create') {
+                const dir = item.path.slice(0, item.path.length - item.fileName.length - 1)
+                return (
+                  <div key="__create" className={cls} onClick={() => activate(item)}>
+                    <span className="text-terminal-magenta">＋</span>
+                    <span className="text-terminal-magenta truncate">
+                      Create &ldquo;{item.fileName}&rdquo;{' '}
+                      <span className="text-terminal-green-dark">in {dir}</span>
+                    </span>
+                  </div>
+                )
+              }
               return (
                 <div key={item.path} className={cls} onClick={() => activate(item)}>
                   <span className="text-terminal-yellow">•</span>
@@ -197,7 +231,7 @@ export function NotePickerModal() {
           style={{ borderTopColor: 'color-mix(in srgb, var(--color-terminal-green) 20%, transparent)' }}
         >
           <span>
-            <b className="text-terminal-green">↑↓</b> nav · <b className="text-terminal-green">enter</b> {selected?.kind === 'dir' ? 'open folder' : selected?.kind === 'up' ? 'go up' : 'attach'} · <b className="text-terminal-green">⌫</b> up · <b className="text-terminal-green">esc</b> cancel
+            <b className="text-terminal-green">↑↓</b> nav · <b className="text-terminal-green">enter</b> {selected?.kind === 'dir' ? 'open folder' : selected?.kind === 'up' ? 'go up' : selected?.kind === 'create' ? 'create & edit' : 'attach'} · <b className="text-terminal-green">⌫</b> up · <b className="text-terminal-green">esc</b> cancel
           </span>
           <span>{items.length} item(s)</span>
         </div>

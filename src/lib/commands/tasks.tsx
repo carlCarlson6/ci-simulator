@@ -223,13 +223,14 @@ export const effect: CommandEffect = (result, context) => {
 
 import { useEffect, useState } from 'react'
 import { useTerminalStore } from '../terminalStore'
-import { isOverdue, nextStatus, sortedTasks } from '../tasks'
+import { isOverdue, nextStatus, sortedTasks, noteFileName, taskNotePath, slugifyTitle } from '../tasks'
 
-type Mode = null | 'add' | 'edit' | 'confirm'
+type Mode = null | 'add' | 'edit' | 'confirm' | 'newnote'
 
 export function TasksModal() {
   const tasksOpen = useTerminalStore((s) => s.tasksOpen)
   const markdownOpen = useTerminalStore((s) => s.markdownOpen)
+  const editorOpen = useTerminalStore((s) => s.editorOpen)
   const notePickerOpen = useTerminalStore((s) => s.notePickerOpen)
   const tasks = useTerminalStore((s) => s.tasks)
   const fileSystem = useTerminalStore((s) => s.fileSystem)
@@ -237,6 +238,8 @@ export function TasksModal() {
   const closeTasks = useTerminalStore((s) => s.closeTasks)
   const openTaskNote = useTerminalStore((s) => s.openTaskNote)
   const openNotePicker = useTerminalStore((s) => s.openNotePicker)
+  const createNote = useTerminalStore((s) => s.createNote)
+  const openEditor = useTerminalStore((s) => s.openEditor)
 
   const [pane, setPane] = useState<'tasks' | 'notes'>('tasks')
   const [taskIdx, setTaskIdx] = useState(0)
@@ -263,7 +266,7 @@ export function TasksModal() {
     }
   }, [tasksOpen])
 
-  const isTextMode = mode === 'add' || mode === 'edit'
+  const isTextMode = mode === 'add' || mode === 'edit' || mode === 'newnote'
 
   function startEdit() {
     if (!selected) return
@@ -289,6 +292,17 @@ export function TasksModal() {
         title: parsed.title || undefined,
         dueDate: parsed.clearDue ? null : parsed.due,
       })
+    } else if (mode === 'newnote' && selected) {
+      const fileName = noteFileName(input)
+      if (!fileName) return setError('note name required')
+      const path = taskNotePath(selected.title, fileName)
+      const r = createNote(path)
+      if (!r.ok) return setError(r.message)
+      applyTaskOp({ kind: 'attach', id: selected.id, path })
+      setMode(null)
+      setInput('')
+      openEditor(path, '')
+      return
     }
     setMode(null)
     setInput('')
@@ -297,7 +311,7 @@ export function TasksModal() {
   // Global key handling (navigation + shortcuts), disabled while typing or when
   // a note is open on top of the board.
   useEffect(() => {
-    if (!tasksOpen || markdownOpen || notePickerOpen) return
+    if (!tasksOpen || markdownOpen || notePickerOpen || editorOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (isTextMode) return // the input element owns these keys
 
@@ -379,6 +393,13 @@ export function TasksModal() {
           openNotePicker(selected.id)
           return
         }
+        if (key === 'c') {
+          e.preventDefault()
+          setInput('')
+          setError('')
+          setMode('newnote')
+          return
+        }
         if (key === 'd') {
           e.preventDefault()
           setMode('confirm')
@@ -412,6 +433,7 @@ export function TasksModal() {
     tasksOpen,
     markdownOpen,
     notePickerOpen,
+    editorOpen,
     mode,
     isTextMode,
     pane,
@@ -547,6 +569,7 @@ export function TasksModal() {
             <label className="text-terminal-green-dark mr-2">
               {mode === 'add' && 'New task (title [--due YYYY-MM-DD]):'}
               {mode === 'edit' && 'Edit (title [--due YYYY-MM-DD|none]):'}
+              {mode === 'newnote' && selected && `New note in tasks/${slugifyTitle(selected.title)}/ :`}
             </label>
             <input
               autoFocus
@@ -584,7 +607,7 @@ export function TasksModal() {
             </span>
           ) : pane === 'tasks' ? (
             <span>
-              <b className="text-terminal-green">↑↓</b> nav · <b className="text-terminal-green">space</b> status · <b className="text-terminal-green">x</b> done · <b className="text-terminal-green">a</b> add · <b className="text-terminal-green">e</b> edit · <b className="text-terminal-green">n</b> attach · <b className="text-terminal-green">d</b> del · <b className="text-terminal-green">→</b> notes · <b className="text-terminal-green">esc</b> close
+              <b className="text-terminal-green">↑↓</b> nav · <b className="text-terminal-green">space</b> status · <b className="text-terminal-green">x</b> done · <b className="text-terminal-green">a</b> add · <b className="text-terminal-green">e</b> edit · <b className="text-terminal-green">c</b> new note · <b className="text-terminal-green">n</b> attach · <b className="text-terminal-green">d</b> del · <b className="text-terminal-green">→</b> notes · <b className="text-terminal-green">esc</b> close
             </span>
           ) : (
             <span>

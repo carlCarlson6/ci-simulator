@@ -21,6 +21,30 @@ export type TasksState = {
 
 export const NOTES_DIR = '/notes-app'
 
+// Notes created from the tasks board live under /notes-app/tasks/<task>/<file>.
+export const TASK_NOTES_DIR = `${NOTES_DIR}/tasks`
+
+export function slugifyTitle(title: string): string {
+  const s = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w.-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return s || 'untitled'
+}
+
+// Normalize free-text into a safe note filename (single path segment, .md default).
+export function noteFileName(name: string): string {
+  let n = name.trim().replace(/\//g, '-')
+  if (!n) return ''
+  if (!/\.[a-z0-9]+$/i.test(n)) n += '.md'
+  return n
+}
+
+export function taskNotePath(title: string, fileName: string): string {
+  return `${TASK_NOTES_DIR}/${slugifyTitle(title)}/${fileName}`
+}
+
 export const TASK_STATUSES: TaskStatus[] = ['todo', 'doing', 'blocked', 'done']
 
 export const STATUS_GLYPH: Record<TaskStatus, string> = {

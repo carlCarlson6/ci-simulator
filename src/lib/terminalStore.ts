@@ -82,6 +82,7 @@ type TerminalState = {
   openNoteFile: (path: string) => void
   openNotePicker: (taskId: number) => void
   closeNotePicker: () => void
+  createNote: (path: string) => { ok: boolean; message: string }
 }
 
 let lineId = 0
@@ -461,6 +462,25 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   closeNotePicker: () => {
     set({ notePickerOpen: false, notePickerTaskId: null })
+  },
+
+  createNote: (path: string) => {
+    const st = get()
+    const entry = st.fileSystem.getEntry(path)
+    if (entry?.type === 'directory') {
+      return { ok: false, message: `${path}: is a directory` }
+    }
+    if (!entry) {
+      const parent = st.fileSystem.getParent(path)
+      if (!st.fileSystem.exists(parent)) st.fileSystem.createDirectory(parent)
+      st.fileSystem.writeFile(path, '')
+      persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
+      syncToServerIfUser(st.user).catch(() => {
+        get().addLine({ type: 'error', content: 'State could not be saved to server.' })
+      })
+      set({ fsVersion: get().fsVersion + 1 })
+    }
+    return { ok: true, message: `Created ${path}` }
   },
 
   openMarkdown: (filePath: string, content: string) => {
