@@ -32,6 +32,7 @@ import { handler as pagesHandler, effect as pagesEffect } from './pages'
 import { handler as soundHandler } from './sound'
 import { handler as tasksHandler, effect as tasksEffect } from './tasks'
 import { handler as notesHandler, effect as notesEffect } from './notes'
+import { handler as desktopHandler, effect as desktopEffect } from './desktop'
 
 const commands: Record<string, CommandHandler> = {
   help: helpHandler,
@@ -66,6 +67,7 @@ const commands: Record<string, CommandHandler> = {
   sound: soundHandler,
   tasks: tasksHandler,
   notes: notesHandler,
+  desktop: desktopHandler,
 }
 
 const commandEffects: Record<string, CommandEffect> = {
@@ -80,6 +82,7 @@ const commandEffects: Record<string, CommandEffect> = {
   pages: pagesEffect,
   tasks: tasksEffect,
   notes: notesEffect,
+  desktop: desktopEffect,
 }
 
 export type { CommandContext, CommandResult, CommandHandler, CommandEffect, CommandEffectContext } from './types'

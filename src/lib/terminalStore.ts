@@ -236,8 +236,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
       get().addLine({ type: 'error', content: result.error || 'Unknown error' })
     }
 
-    // Persist state and sync to server after every command
+    // Persist state and sync to server after every command. The fsVersion
+    // bump re-renders GUI views (desktop Files/Notes apps) after any command
+    // that touched the file system.
     const st = get()
+    set({ fsVersion: st.fsVersion + 1 })
     persistState(st.fileSystem, st.currentPath, st.currentTheme, st.envVars)
     syncToServerIfUser(st.user).catch(() => { get().addLine({ type: 'error', content: 'State could not be saved to server.' }) })
   },

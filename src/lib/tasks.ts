@@ -140,7 +140,9 @@ export const today = (): string => new Date().toISOString().slice(0, 10)
 
 export function isValidDueDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
-  const d = new Date(value + 'T00:00:00')
+  // Parse as UTC: local-midnight parsing shifts the ISO date back a day in
+  // UTC+ timezones, rejecting every valid date.
+  const d = new Date(value + 'T00:00:00Z')
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value
 }
 

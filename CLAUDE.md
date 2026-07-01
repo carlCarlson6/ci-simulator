@@ -60,7 +60,12 @@ Server functions defined:
 File-based via TanStack Router. `routeTree.gen.ts` is generated — never edit it by hand; run `npm run gen` or let the Vite plugin regenerate. Routes:
 - [__root.tsx](src/routes/__root.tsx) — document shell + conditional `ClerkProvider` (only mounted if a real Clerk key is set)
 - [index.tsx](src/routes/index.tsx) — renders `<Terminal />`
+- [desktop.tsx](src/routes/desktop.tsx) — desktop GUI (`?app=<id>` opens that app); renders `<Desktop />`
 - [$pageName.tsx](src/routes/$pageName.tsx) — dynamic route serving published wwwroot pages via `getPublishedPage` in a sandboxed iframe
+
+### 6. Desktop GUI ([src/components/desktop/](src/components/desktop/))
+
+`/desktop` is a windowed shell over the *same* terminal session: [desktopStore.ts](src/lib/desktopStore.ts) owns only window-manager state (open windows, geometry, z-order, single instance per app); all file system / tasks / theme / auth state stays in `terminalStore`. Apps under `components/desktop/apps/` (Terminal embed, Files, Notes, Tasks, Settings) are mouse-driven views over the shared store, reusing its mutation helpers so persistence + server sync stay in one place. `bootTerminalSession` ([terminalBoot.ts](src/lib/terminalBoot.ts)) guards one-time store hydration for both `/` and `/desktop`. The store's `executeCommand` bumps `fsVersion` after every command so GUI views re-render on shell-made FS changes. The `desktop` command navigates from the terminal to the GUI.
 
 ### Path alias
 

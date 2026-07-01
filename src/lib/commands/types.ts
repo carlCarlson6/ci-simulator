@@ -33,6 +33,7 @@ export type CommandResult = {
     openNotesModal?: boolean
     notesMkdirPath?: string
     notesRemovePath?: string
+    navigateTo?: string
   }
 }
 

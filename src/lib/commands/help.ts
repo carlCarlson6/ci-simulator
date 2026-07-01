@@ -29,6 +29,7 @@ import { HELP_TEXT as pagesHelp } from './pages'
 import { HELP_TEXT as soundHelp } from './sound'
 import { HELP_TEXT as tasksHelp } from './tasks'
 import { HELP_TEXT as notesHelp } from './notes'
+import { HELP_TEXT as desktopHelp } from './desktop'
 
 export const MANUAL = 'help\n\nShow available commands and brief descriptions.\n\nUsage: help'
 export const HELP_TEXT = '  help                  Show this help message'
@@ -68,6 +69,7 @@ export const handler: CommandHandler = () => ({
       '',
       'General Commands:',
       '  help                  Show this help message',
+      desktopHelp,
       clearHelp,
       echoHelp,
       envHelp,
