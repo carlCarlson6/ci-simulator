@@ -1,8 +1,9 @@
 // src/components/Terminal.tsx
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useTerminalStore } from '../lib/terminalStore'
 import { getTheme, getDefaultTheme } from '../lib/themes'
 import { AuthSyncGate } from '../lib/auth'
+import { bootTerminalSession } from '../lib/terminalBoot'
 import { TerminalOutput } from './TerminalOutput'
 import { TerminalInput } from './TerminalInput'
 import { EditorModal } from '~/lib/commands/edit'
@@ -16,33 +17,11 @@ export function Terminal() {
   const loaderData = Route.useLoaderData()
   const serverUser = loaderData?.user ?? null
   const serverState = loaderData?.serverState ?? null
-  const initialize = useTerminalStore((state) => state.initialize)
-  const setUser = useTerminalStore((state) => state.setUser)
-  const setUserInfo = useTerminalStore((state) => state.setUserInfo)
-  const restoreServerState = useTerminalStore((state) => state.restoreServerState)
   const currentTheme = useTerminalStore((state) => state.currentTheme)
-  const initialized = useRef(false)
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true
-      ;(window as any).__START_TIME = Date.now()
-      initialize()
-
-      if (serverUser) {
-        setUser(serverUser.username)
-        setUserInfo({
-          id: serverUser.id,
-          email: '',
-          username: serverUser.username,
-        })
-      }
-
-      if (serverState) {
-        restoreServerState(serverState)
-      }
-    }
-  }, [initialize, serverUser, setUser, setUserInfo, serverState, restoreServerState])
+    bootTerminalSession(serverUser, serverState)
+  }, [serverUser, serverState])
 
   const theme = getTheme(currentTheme) || getDefaultTheme()
 

@@ -147,3 +147,21 @@ body {
   padding-left: 0.5rem;
   margin-left: -0.625rem;
 }
+
+/* ─── Desktop environment (/desktop) ─── */
+
+.desktop-wallpaper {
+  background:
+    radial-gradient(ellipse at 25% 20%, color-mix(in srgb, var(--color-terminal-green) 8%, transparent), transparent 55%),
+    radial-gradient(ellipse at 80% 85%, color-mix(in srgb, var(--color-terminal-blue) 7%, transparent), transparent 50%),
+    var(--color-terminal-bg);
+}
+
+.desktop-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-terminal-green) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-terminal-green) 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 90%);
+  mask-image: radial-gradient(ellipse at center, black 25%, transparent 90%);
+}
